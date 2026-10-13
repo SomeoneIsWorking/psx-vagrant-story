@@ -125,7 +125,7 @@ void Application::run(Game &game) {
   psx::config::report_once();
   lucent::info("vagrant-boot", "entering the bounded Vagrant Story product loop");
 
-  machine.attachControlChannel(0u);
+  machine.attachControlChannel();
   machine.run(0u);
 }
 
