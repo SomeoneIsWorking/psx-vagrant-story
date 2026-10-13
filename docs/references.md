@@ -31,6 +31,10 @@ decomp configs discovered: 21 · matched 21 · mismatched 0 · extract-failed 0
 code images on the disc: 22 · covered by a config 21 · NOT covered: ['MENU/MENUA.PRG']
 ```
 
+That count is at the `f3072188` pin. Upstream `main` (`8f6e3238`, 2026-10-12) has 89 splat configs,
+adding `EFFECT/*.BIN` and `SMALL` modules; its `SLUS_010.40` `sha1:` is still `fababcfd…`. Re-run the
+check after moving the pin.
+
 - `SLUS_010.40` — `fababcfd4325d42f350d95b3472874affeb0e48c`, 337,920 bytes.
 - `BATTLE/BATTLE.PRG`, `BATTLE/INITBTL.PRG`, `ENDING/ENDING.PRG`, `GIM/SCREFF2.PRG`, `TITLE/TITLE.PRG`
   and 15 `MENU/*.PRG` — all matched.
@@ -89,8 +93,11 @@ decomp here and do not depend on its toolchain; it is a read-only reference tree
 
 ## Other material
 
-- **Data Crystal's Vagrant Story page** — format/RAM notes; the decomp's README credits it. Unverified
-  here; treat any address from it exactly like one from the decomp.
-- **decomp.dev** lists this project among ~150 matching decomps (Vagrant Story ~62.63% when the
-  workspace survey was written). psxport itself cannot report there — our axis is RAM parity, not
-  object identity — see `external/psxport/docs/prior-art.md`.
+- **Data Crystal's Vagrant Story page** — format notes; its RAM map subpage covers prototype builds,
+  not `SLUS_010.40`. The decomp's README credits it. Unverified here; treat any address from it
+  exactly like one from the decomp.
+- **decomp.dev** lists this project at 50.12% on 2026-10-13 against 62.63% in the 2026-08-12 survey;
+  upstream added the EFFECT and SMALL configs in between, so the two figures are not like-for-like.
+  psxport itself cannot report there — our axis is RAM parity, not object identity — see
+  `external/psxport/docs/prior-art.md`.
+- The full candidate table, including what was found and rejected, is `docs/prior-art.md`.
