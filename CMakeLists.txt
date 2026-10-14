@@ -62,6 +62,9 @@ target_include_directories(vagrant_native PUBLIC game)
 target_link_libraries(vagrant_native PUBLIC psxport vagrant_runtime)
 
 if(BUILD_TESTING)
+  add_test(NAME vagrant_cpp_ownership
+    COMMAND "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_cpp_style.py" --ownership-only
+            --root "${CMAKE_CURRENT_SOURCE_DIR}" --compile-commands "${CMAKE_BINARY_DIR}")
   add_executable(vagrant_image_contract tests/test_vagrant_image_contract.cpp)
   target_link_libraries(vagrant_image_contract PRIVATE vagrant_native)
   add_test(NAME vagrant_image_contract COMMAND vagrant_image_contract)
