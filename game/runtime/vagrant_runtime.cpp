@@ -117,10 +117,6 @@ bool VagrantRuntime::guestVramIsPicture(const Game &) const {
   return true;
 }
 
-const char *VagrantRuntime::discEnvVar() const {
-  return kDiscEnvKey.data();
-}
-
 const PlatformHlePlan *VagrantRuntime::platformHlePlan() const {
   return &platformPlan_;
 }

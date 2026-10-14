@@ -1,9 +1,11 @@
+#include "boot/resident_image.h"
 #include "core.h"
 #include "disc.h"
 #include "game.h"
 #include "images/overlay_images.h"
 #include "lightrec_executor.h"
 #include "lucent/content.h"
+#include "machine.h"
 #include "runtime/vagrant_runtime.h"
 
 #include <algorithm>
@@ -54,6 +56,7 @@ bool retailInputs(const std::filesystem::path &directory, bool discTransfer) {
   vagrant::VagrantRuntime runtime;
   psxport_install_game(runtime);
   auto game = std::make_unique<Game>();
+  psx::Machine{*game}.insertDisc(vagrant::kTitleIdentity);
   vagrant::OverlayImages overlays(game->core);
   for (const auto [kind, stem, isoPath, entry, guestBase] : {
            std::tuple{OverlayKind::Title, "TITLE", "TITLE/TITLE.PRG", 0x80071334u, 0x80068800u},
