@@ -11,7 +11,7 @@ updated: 2026-10-10
 ## What was built
 
 `vagrant::BattleProjectionOwner` (`game/render/battle_projection.{h,cpp}`), registered through the
-per-Core `psx::cpu::NativeDispatcher` from `VagrantRuntime::loadResidentImage` — the only boundary at
+per-Core `psx::cpu::NativeDispatcher` from `VagrantRuntime::admitExecutable` — the only boundary at
 which the resident image exists. `VagrantContext` holds the owner per Core.
 
 It owns the four **resident** SDK leaves, not the overlay call site: BATTLE's presenter

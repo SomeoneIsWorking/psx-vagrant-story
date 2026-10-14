@@ -12,6 +12,9 @@
 #include "sync/frame_loop.h"
 #include "sync/vsync_facts.h"
 
+#include <lucent/log.h>
+
+#include <cstdlib>
 #include <iomanip>
 #include <sstream>
 
@@ -62,7 +65,9 @@ const GuestPadBufferLayout VagrantRuntime::padLayout_{
     .slotPointerStride = pad::kDriverPointerStride,
 };
 
+// ResidentPhase enters the executable from bootInit, so the framework applies no crt0.
 const GuestProgramImage VagrantRuntime::programImage_{
+    .bootEntry = BootEntry::DriverOwned,
     .bss = {0x80033678u, 0x800401A8u},
     .stackTopWordAddress = 0x80049138u,
     .stackReserveWordAddress = 0x8004913Cu,
@@ -88,7 +93,7 @@ void VagrantRuntime::destroyContext(void *context) {
 
 void VagrantRuntime::registerOverrides(Game &) {
   // Empty on purpose: this runs before any image exists, and overlays share 0x80068800.
-  // Image-scoped leaves are registered from `loadResidentImage`.
+  // Image-scoped leaves are registered from `admitExecutable`.
 }
 
 void VagrantRuntime::bootInit(Core &core) {
@@ -129,8 +134,10 @@ std::unique_ptr<FrameDriver> VagrantRuntime::createFrameDriver(Game &) {
   return std::make_unique<VagrantFrameDriver>();
 }
 
-psx::cpu::PsxExeLoadResult
-VagrantRuntime::loadResidentImage(Core &core, std::span<const std::uint8_t> bytes, std::string_view imageName) const {
+psx::cpu::PsxExeLoadResult VagrantRuntime::admitExecutable(Core &core, std::span<const std::uint8_t> bytes) {
+  if (core.gameCtx == nullptr) {
+    return {std::nullopt, {}, "this Core has no VagrantContext, so the title's per-Core owners are absent"};
+  }
   const auto parsed = psx::cpu::parsePsxExeImage(bytes);
   if (!parsed.image.has_value()) {
     return {std::nullopt, {}, parsed.detail};
@@ -138,27 +145,36 @@ VagrantRuntime::loadResidentImage(Core &core, std::span<const std::uint8_t> byte
   if (!matchesResidentHeader(parsed.image.value())) {
     return {std::nullopt, {}, headerMismatch(parsed.image.value())};
   }
-  auto loaded = psx::cpu::loadPsxExeImage(core, bytes, imageName);
-  if (!loaded) {
+  auto loaded = psx::cpu::loadPsxExeImage(core, bytes, kResidentImageName);
+  if (!loaded.identity.has_value()) {
     return loaded;
   }
-  // Every leaf is registered against this generation, so a zero identity is refused.
-  const psx::cpu::ImageIdentity residentImage = loaded.identity.value_or(psx::cpu::ImageIdentity{});
-  if (residentImage == psx::cpu::ImageIdentity{}) {
-    return {std::nullopt, loaded.image, "the resident image published no generation identity"};
-  }
-  // The only registration site: `registerOverrides` runs before any image exists, and a second registration is a
-  // duplicate key. Refusal is all-or-nothing, so a partially owned image fails the load.
+  const psx::cpu::ImageIdentity residentImage = *loaded.identity;
+  // The only registration site: `registerOverrides` runs before any image exists. The bytes are authenticated
+  // by now, so a leaf that does not register is a defect in the owner table, not a refusable input.
   const auto registration = installResidentNativeOwners(core, residentImage);
   if (!registration) {
-    return {std::nullopt,
-            loaded.image,
-            std::string{"the resident generation published but its native leaves were not fully "
-                        "registered: installed "} +
-                std::to_string(registration.installed) + " of " + std::to_string(registration.attempts) + ", " +
-                std::to_string(registration.refused) + " refused, first at '" + registration.refusedOwner + "'"};
+    lucent::error("vagrant-boot",
+                  "resident generation {}/{} registered {} of {} native leaves, {} refused, first at '{}'",
+                  residentImage.id,
+                  residentImage.generation,
+                  registration.installed,
+                  registration.attempts,
+                  registration.refused,
+                  registration.refusedOwner);
+    std::abort();
   }
+  psx::cpu::applyPsxExeTopLevelRegisters(core, loaded.image);
+  lucent::info(
+      "vagrant-boot", "resident generation {}/{} owns its native leaves", residentImage.id, residentImage.generation);
   return loaded;
+}
+
+void VagrantRuntime::reportRun(Core &core) const {
+  lucent::info("vagrant-boot",
+               "guest-leg producer census: {} OT span(s), {} overflow(s); zero means the guest submitted no primitive",
+               core.rsub.otAttr.spanCount(),
+               core.rsub.otAttr.spanOverflow());
 }
 
 } // namespace vagrant

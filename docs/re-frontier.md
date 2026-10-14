@@ -30,12 +30,12 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 ### RE-02 — resident runtime mapping and entry
 - status: re-partial
 - deps: RE-01
-- evidence: `vagrant::VagrantRuntime::loadResidentImage` now refuses a structurally valid PS-X EXE
+- evidence: `vagrant::VagrantRuntime::admitExecutable` refuses a structurally valid PS-X EXE
   whose measured resident header differs, then delegates the accepted image to psxport's central
   `loadPsxExeImage` publication and image catalog. `vagrant_image_contract` proves the positive
   entry/range/catalog path and the changed-entry refusal with a synthetic PS-X shape.
-- where: `game/runtime/vagrant_runtime.{h,cpp}`, `game/boot/resident_image.{h,cpp}`,
-  `game/boot/application.{h,cpp}`, `tests/test_vagrant_image_contract.cpp`,
+- where: `game/runtime/vagrant_runtime.{h,cpp}`, `game/boot/resident_image.h`,
+  `tests/test_vagrant_image_contract.cpp`,
   `CLAUDE.md`
 - gap: The measured resident header is admitted in a process that reads the file whole and refuses
   any other size. A run now enters the guest at `0x8001F544` and executes the resident leaf order on
@@ -231,9 +231,9 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - status: re-partial
 - deps: RE-05, RE-10
 - evidence: `game/sync/frame_loop.cpp` owns explicit per-field service order and one presentation
-  commit; focused C++ tests retain its previously measured contract, and `vagrant::Application` is the
-  composition owner that binds it to the product loop.
-- where: `game/sync/frame_loop.cpp`, `game/boot/application.cpp`, `tests/test_vagrant_runtime.cpp`
+  commit; focused C++ tests retain its previously measured contract, and psxport's `TitleSession` runs
+  it as the product loop.
+- where: `game/sync/frame_loop.cpp`, `tests/test_vagrant_runtime.cpp`
 - gap: The boot reaches the product loop and presents one field; the field is the boot's first field
   and the run then dies in field 1 (issue 0042).
 

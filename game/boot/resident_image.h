@@ -4,39 +4,31 @@
 #include "title_catalog.h"
 
 #include <cstddef>
-#include <cstdint>
-#include <filesystem>
-#include <optional>
-#include <string>
 #include <string_view>
-#include <vector>
-
-class Core;
 
 namespace vagrant {
 
 // Catalog name of this generation; provisioning names the same strings.
 inline constexpr std::string_view kResidentImageName = "SLUS_010.40";
+
+// The measured file size: PS-X header plus text.
+inline constexpr std::size_t kResidentFileBytes = 0x800u + kResidentHeader.textBytes;
+
+// SLUS_010.40 as the host authenticates it; the SHA-256 is of the file whose SHA-1 rood-reverse states.
 inline constexpr psx::host::TitleIdentity kTitleIdentity{
     .displayName = "Vagrant Story",
     .serial = kResidentImageName,
     .slug = "vagrant",
+    .fileSize = kResidentFileBytes,
+    .sha256 = "51dfdf15a58f7de8505742b5050de2951b133ed5ce801b08bff7f60b76e5d1bf",
+    .entry = kResidentHeader.entry,
+    .globalPointer = kResidentHeader.globalPointer,
+    .textAddress = kResidentHeader.textAddress,
+    .textSize = kResidentHeader.textBytes,
+    .stackAddress = kResidentHeader.stackBase,
+    .stackOffset = kResidentHeader.stackOffset,
     .discEnvVar = "PSXPORT_VAGRANT_DISC",
     .discExecutablePath = kResidentImageName,
 };
-
-// The whole provisioned file plus the digest of the bytes that will be mapped.
-struct ResidentImage {
-  std::vector<std::uint8_t> bytes;
-  std::string sha256;
-  std::size_t declaredSize = 0;
-};
-
-// Reads `path` whole and refuses unless it is exactly the measured SLUS_010.40 size.
-// SHA-1 belongs to provisioning; header admission is `VagrantRuntime::loadResidentImage`.
-std::optional<ResidentImage> readResidentImage(const std::filesystem::path &path);
-
-// The measured file size: PS-X header plus text.
-inline constexpr std::size_t kResidentFileBytes = 0x800u + kResidentHeader.textBytes;
 
 } // namespace vagrant

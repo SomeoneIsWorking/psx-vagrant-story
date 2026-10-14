@@ -1,9 +1,6 @@
 # re-harness cpp_policy sites this repository has not yet moved to an owner. The list only shrinks:
 # a site that no longer occurs fails the gate until its line is deleted.
 
-# Hand-written mains still outside the framework main; each goes when its title moves to psxport_add_product.
-game/main.cpp:entry point:main
-
 # Functions in the global namespace.
 tests/test_vagrant_overlay_images.cpp:global-namespace function:noModuleLoadReachesTheResidentText
 

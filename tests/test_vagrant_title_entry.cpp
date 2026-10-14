@@ -92,7 +92,7 @@ bool syntheticCall() {
   psxport_install_game(runtime);
   auto game = std::make_unique<Game>();
   Core &core = game->core;
-  const auto resident = runtime.loadResidentImage(core, residentBytes, "SLUS_010.40");
+  const auto resident = runtime.admitExecutable(core, residentBytes);
   vagrant::OverlayImages overlays(core, specs);
   const auto title = overlays.load(vagrant::OverlayKind::Title, titleBytes);
   if (!resident.identity.has_value() || !title.identity.has_value()) {
@@ -162,7 +162,7 @@ bool retailAdmission(const std::filesystem::path &directory) {
   psxport_install_game(runtime);
   auto game = std::make_unique<Game>();
   Core &core = game->core;
-  const auto resident = runtime.loadResidentImage(core, residentBytes, "SLUS_010.40");
+  const auto resident = runtime.admitExecutable(core, residentBytes);
   vagrant::OverlayImages overlays(core);
   const auto title = overlays.load(vagrant::OverlayKind::Title, titleBytes);
   if (!resident.identity.has_value() || !title.identity.has_value()) {
