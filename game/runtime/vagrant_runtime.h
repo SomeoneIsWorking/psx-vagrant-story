@@ -42,7 +42,6 @@ public:
   const GuestProgramImage *guestProgramImage() const override;
   RenderCapabilities renderCapabilities() const override;
   bool guestVramIsPicture(const Game &game) const override;
-  const char *discEnvVar() const override;
   // The libetc VSync body; psxport refuses a title without one before boot.
   const PlatformHlePlan *platformHlePlan() const override;
   // Receive buffers PadInitDirect registered; without them the host never publishes a pad packet.

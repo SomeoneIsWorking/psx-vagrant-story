@@ -54,7 +54,7 @@ Two rules hold everywhere below:
 | File | Symbol | Responsibility |
 |---|---|---|
 | `application.{h,cpp}` | `Application`, `runApplication` | the ORDER the machine becomes a product: publish the resident image, bind peripherals, register native leaves, preflight the platform sync boundary, run the measured boot phase, enter the product loop, report the run-end census |
-| `resident_image.{h,cpp}` | `readResidentImage`, `ResidentImage`, `kResidentImageName`, `kDiscEnvKey`, `kResidentFileBytes` | read the provisioned resident file whole, refuse any size but the measured one, and digest exactly the bytes about to be mapped |
+| `resident_image.{h,cpp}` | `readResidentImage`, `ResidentImage`, `kResidentImageName`, `kTitleIdentity` (serial and disc facts), `kResidentFileBytes` | read the provisioned resident file whole, refuse any size but the measured one, and digest exactly the bytes about to be mapped |
 | `resident_phase.{h,cpp}` | `ResidentPhase`, `ResidentCallServices`, `productionResidentCallServices`, `ResidentPhaseState` | the finite resident bootstrap and the start of TITLE reinitialisation: retail leaf order, with every measured guest field wait turned into an explicit host state; `TitleExecRunning` and `ExecTitleTailRunning` hand TITLE and the `vs_main_execTitle` tail to suspended guest calls |
 | `exec_title_tail.{h,cpp}` | `ExecTitleTail` | `vs_main_execTitle` after `vs_title_exec` returns (0x80042BE0): continues the guest tail through `_loadBattlePrg` into `vs_battle_exec`, one suspended call across fields |
 | `resident_facts.h` | `kCxxMain`, `kInitHeap`, `kTitlePrgLba`, `kGameTime`, `kTitleCallSite`, … | the resident addresses, offsets and load bases `ResidentPhase` ships |
@@ -282,8 +282,8 @@ psx::Machine::attachControlChannel(port)                 (framework; always open
             -> psx::Machine::stepFrame -> VagrantFrameDriver::stepFrame (guest state advances)
 ```
 
-This title owns no debug command of its own yet. `PSXPORT_VAGRANT_DISC` is declared through
-`VagrantRuntime::discEnvVar()`.
+This title owns no debug command of its own yet. `PSXPORT_VAGRANT_DISC` is declared in
+`kTitleIdentity` (`boot/resident_image.h`) and handed to the disc owner by `psx::Machine::insertDisc`.
 
 ## Source tree
 

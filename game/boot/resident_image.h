@@ -1,6 +1,7 @@
 #pragma once
 
 #include "runtime/vagrant_runtime.h"
+#include "title_catalog.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -14,9 +15,15 @@ class Core;
 
 namespace vagrant {
 
-// Catalog name of this generation and the disc environment key; provisioning names the same strings.
+// Catalog name of this generation; provisioning names the same strings.
 inline constexpr std::string_view kResidentImageName = "SLUS_010.40";
-inline constexpr std::string_view kDiscEnvKey = "PSXPORT_VAGRANT_DISC";
+inline constexpr psx::host::TitleIdentity kTitleIdentity{
+    .displayName = "Vagrant Story",
+    .serial = kResidentImageName,
+    .slug = "vagrant",
+    .discEnvVar = "PSXPORT_VAGRANT_DISC",
+    .discExecutablePath = kResidentImageName,
+};
 
 // The whole provisioned file plus the digest of the bytes that will be mapped.
 struct ResidentImage {

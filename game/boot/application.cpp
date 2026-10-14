@@ -29,8 +29,8 @@
 namespace vagrant {
 namespace {
 
-// Relative to the repository root; the launcher provisions it.
-constexpr std::string_view kResidentImagePath = "scratch/bin/vagrant/SLUS_010.40";
+// Relative to the repository root, where the launcher provisions the resident image.
+constexpr std::string_view kProvisioningRoot = "scratch/bin";
 
 // Namespace-scope so it outlives the Core that snapshots it, not a runApplication local.
 VagrantRuntime titleRuntime;
@@ -101,7 +101,7 @@ bool Application::start(Game &game, const std::string &residentImagePath) {
   game.spu_audio.init();
   game.gpu.gpu_native_init();
   game.pad.overridesInit();
-  game.disc.env_key = runtime.discEnvVar();
+  psx::Machine{game}.insertDisc(kTitleIdentity);
 
   // Refuses a title with no measured VSync address; must precede boot.
   psx::frame::FrameLoopShell{}.prepareProduct(game);
@@ -163,11 +163,11 @@ int runApplication(int argc, char **argv) {
       lucent::info("vagrant-boot",
                    "Run Vagrant Story (USA SLUS_010.40) through psxport's Lightrec dynarec executor. "
                    "The default resident path is {}; the launcher provisions it.",
-                   kResidentImagePath);
+                   kTitleIdentity.defaultExecutable(kProvisioningRoot).string());
       return EXIT_SUCCESS;
     }
   }
-  std::string residentImage{kResidentImagePath};
+  std::string residentImage = kTitleIdentity.defaultExecutable(kProvisioningRoot).string();
   for (int index = 1; index < argc; ++index) {
     if (std::strcmp(argv[index], "--resident") == 0 && index + 1 < argc) {
       residentImage = argv[++index];
