@@ -120,7 +120,7 @@ void executesRealGuestCode() {
   const auto bytes = residentFixture(0x2Du);
   auto machine = makeMachine(bytes);
   Core &core = machine->core();
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "execute", "the measured resident image was refused");
   if (!loaded) {
     return;
@@ -147,7 +147,7 @@ void reportsTypedExitOnBudgetExhaustion() {
   writeWord(bytes, entryOffset + 4u, 0x00000000u); // delay slot: nop
   auto machine = makeMachine(bytes);
   Core &core = machine->core();
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "typed-exit", "the loop fixture was refused as an image");
   if (!loaded) {
     return;
@@ -173,7 +173,7 @@ void refusesUnscopedAndStaleGenerations() {
   const bool unscoped = vagrant::dynarec::installNativeOverride(core, 0x80010200u, "unscoped owner", nativeLeaf);
   require(!unscoped, "generation", "an override was installed with no active image at the address");
 
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "generation", "the measured resident image was refused");
   if (!loaded) {
     return;
@@ -217,7 +217,7 @@ void originalCallReachesTheGuestBody() {
   const auto bytes = residentFixture(0x11u);
   auto machine = makeMachine(bytes);
   Core &core = machine->core();
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "original", "the measured resident image was refused");
   if (!loaded) {
     return;
@@ -259,7 +259,7 @@ void registersTheMeasuredHeapLeaf() {
   const auto bytes = residentFixture(0u);
   auto machine = makeMachine(bytes);
   Core &core = machine->core();
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "heap-leaf", "the measured resident image was refused");
   if (!loaded) {
     return;
@@ -279,7 +279,7 @@ void everyClaimedResidentLeafIsBound() {
   const auto bytes = residentFixture(0u);
   auto machine = makeMachine(bytes);
   Core &core = machine->core();
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "bound-leaves", "the measured resident image was refused");
   if (!loaded) {
     return;
@@ -321,7 +321,7 @@ void overlayReplacementRetiresThePriorGenerationsKeys() {
   const auto bytes = residentFixture(0u);
   auto machine = makeMachine(bytes);
   Core &core = machine->core();
-  const auto loaded = machine->runtime->loadResidentImage(core, bytes, vagrant::kResidentImageName);
+  const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "overlay-retire", "the measured resident image was refused");
   if (!loaded) {
     return;

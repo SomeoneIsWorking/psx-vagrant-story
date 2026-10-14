@@ -7,18 +7,20 @@ belongs. Capability status is authoritative in `docs/project-state.md`; epic int
 
 ## Architecture
 
-`vagrant::Application` is the process composition owner: the only place that knows the ORDER the
-machine becomes a product. It composes cohesive per-Core owners and implements none of them.
+The framework main composes the product: `psx::host::ProductHost` owns the command line, provisioning
+and authentication, and `psx::host::TitleSession` knows the ORDER the machine becomes a product. This
+title supplies a one-title catalog and a `VagrantRuntime`, and implements none of that order.
 
 ```text
 run.sh -> bootstrap.py -> tools/run.py -> tools/launcher/runtime_boundary.py
-       -> vagrant_port (game/main.cpp) -> vagrant::runApplication
-       -> vagrant::Application -> VagrantRuntime (installed before the Game)
-                               -> resident image admission + publication
-                               -> vagrant::installResidentNativeOwners
-                               -> psx::Machine{game} -> control channel + product frame loop
-                                                          -> psx::frame::FieldTurn (per-field services)
-                                                          -> vagrant::VagrantFrameDriver (the finite field)
+       -> vagrant_port (framework main) -> psx::host::ProductHost (vagrant::createCatalog)
+       -> psx::host::TitleSession::boot -> VagrantRuntime (installed before the Game)
+                                        -> VagrantRuntime::admitExecutable: header check, publication,
+                                           vagrant::installResidentNativeOwners
+                                        -> binds, preflight, control channel, display clear,
+                                           VagrantRuntime::bootInit (ResidentPhase)
+       -> psx::host::TitleSession::step -> psx::frame::FieldTurn (per-field services)
+                                        -> vagrant::VagrantFrameDriver (the finite field)
 
 every per-Core title owner hangs off vagrant::VagrantContext, reached ONLY through vagrant::contextOf(Core&)
 ```
@@ -32,12 +34,11 @@ Two rules hold everywhere below:
 
 ## Subsystems by directory
 
-### `game/` — process entry
+### `game/entry/` — the product's catalog (`namespace vagrant`)
 
-| Namespace | Symbol | Responsibility |
+| File | Symbol | Responsibility |
 |---|---|---|
-| — | `main` | the shipped `main`: one call to `vagrant::runApplication`, holding no title state |
-| `vagrant` | `runApplication` | interprets arguments, installs the title runtime BEFORE the `Game`, refuses an absent context or executor, and drives `Application`'s three stages |
+| `vagrant_catalog.{h,cpp}` | `createCatalog` | the `SingleTitleCatalog` over `kTitleIdentity`, the `scratch/bin` provisioning root and the `VagrantRuntime`. Entry is the framework main (`psxport_add_product`) |
 
 ### `game/cd/` — CD, libds and the disc (`namespace vagrant::cd`)
 
@@ -53,8 +54,7 @@ Two rules hold everywhere below:
 
 | File | Symbol | Responsibility |
 |---|---|---|
-| `application.{h,cpp}` | `Application`, `runApplication` | the ORDER the machine becomes a product: publish the resident image, bind peripherals, register native leaves, preflight the platform sync boundary, run the measured boot phase, enter the product loop, report the run-end census |
-| `resident_image.{h,cpp}` | `readResidentImage`, `ResidentImage`, `kResidentImageName`, `kTitleIdentity` (serial and disc facts), `kResidentFileBytes` | read the provisioned resident file whole, refuse any size but the measured one, and digest exactly the bytes about to be mapped |
+| `resident_image.h` | `kResidentImageName`, `kResidentFileBytes`, `kTitleIdentity` | the resident's catalog identity: serial, measured size, SHA-256, header facts, disc key and path. The host authenticates the provisioned file against it before `VagrantRuntime::admitExecutable` sees the bytes |
 | `resident_phase.{h,cpp}` | `ResidentPhase`, `ResidentCallServices`, `productionResidentCallServices`, `ResidentPhaseState` | the finite resident bootstrap and the start of TITLE reinitialisation: retail leaf order, with every measured guest field wait turned into an explicit host state; `TitleExecRunning` and `ExecTitleTailRunning` hand TITLE and the `vs_main_execTitle` tail to suspended guest calls |
 | `exec_title_tail.{h,cpp}` | `ExecTitleTail` | `vs_main_execTitle` after `vs_title_exec` returns (0x80042BE0): continues the guest tail through `_loadBattlePrg` into `vs_battle_exec`, one suspended call across fields |
 | `resident_facts.h` | `kCxxMain`, `kInitHeap`, `kTitlePrgLba`, `kGameTime`, `kTitleCallSite`, … | the resident addresses, offsets and load bases `ResidentPhase` ships |
@@ -83,7 +83,7 @@ Two rules hold everywhere below:
 
 | File | Symbol | Responsibility |
 |---|---|---|
-| `vagrant_runtime.{h,cpp}` | `VagrantRuntime`, `ResidentHeaderFacts`, `kResidentHeader` | the title's `GameRuntime` policy: the measured guest program image, the measured `PlatformHlePlan`, the frame driver factory, and the authenticated PS-X header admission |
+| `vagrant_runtime.{h,cpp}` | `VagrantRuntime`, `ResidentHeaderFacts`, `kResidentHeader` | the title's `GameRuntime` policy: the measured guest program image, the measured `PlatformHlePlan`, the frame driver factory (`bootEntry=DriverOwned`: `ResidentPhase` enters the guest from `bootInit`), executable admission (`admitExecutable`: header check, publication, native leaves, entry registers) and the run-end OT census (`reportRun`) |
 | `vagrant_context.{h,cpp}` | `VagrantContext`, `contextOf` | the per-Core aggregate of cohesive title owners, and the ONE accessor for it |
 
 ### `game/input/` — pad delivery (`namespace vagrant`, `vagrant::pad`)
@@ -148,8 +148,7 @@ Each chain names the class and method at every hop.
 ### The frame turn
 
 ```text
-psx::Machine::run                                        (framework; owns iteration)
-  -> psx::Machine::stepFrame                              (framework)
+psx::host::TitleSession::step                            (framework; owns iteration and the run cap)
        -> psx::frame::FieldTurn::beginField               (framework: answer a client pause/step, re-arm
                                                             the frame watchdog)
             -> vagrant::VagrantFrameDriver::stepFrame     (this title: the finite field)
@@ -265,7 +264,7 @@ make a wait return, and the guest `_initMemcard` is asserted undispatched.
 ### Audio
 
 ```text
-psx::Machine::stepFrame -> vagrant::VagrantFrameDriver::stepFrame
+psx::host::TitleSession::step -> vagrant::VagrantFrameDriver::stepFrame
   -> services_.audio -> game.spu_audio.frame()           (psxport's SPU owner)
 ```
 
@@ -276,31 +275,31 @@ audio synthesis exists yet (S014).
 ### Debug / control channel
 
 ```text
-psx::Machine::attachControlChannel(port)                 (framework; always open on loopback)
+psx::host::TitleSession::boot -> DbgServer::start + store_observe_attach   (framework; before the first field)
   -> psxport dbg_server                                   (framework: the endpoint)
        -> one queued command per field, serviced by psx::frame::FieldTurn
-            -> psx::Machine::stepFrame -> VagrantFrameDriver::stepFrame (guest state advances)
+            -> psx::host::TitleSession::step -> VagrantFrameDriver::stepFrame (guest state advances)
 ```
 
 This title owns no debug command of its own yet. `PSXPORT_VAGRANT_DISC` is declared in
-`kTitleIdentity` (`boot/resident_image.h`) and handed to the disc owner by `psx::Machine::insertDisc`.
+`kTitleIdentity` (`boot/resident_image.h`) and handed to the disc owner by `TitleSession::boot`.
 
 ## Source tree
 
 ```text
-game/  —  4,682 lines, 64 files
-├─ boot/      1,107 lines, 13 files   the boot spine
-├─ cd/          303 lines,  7 files   CD, libds and the disc
-├─ execution/   404 lines,  4 files   the guest-execution seam
-├─ images/      323 lines,  6 files   image residency and cross-image call gates
-├─ input/        68 lines,  3 files   pad delivery
-├─ render/     1,545 lines, 17 files   render producers and the projection
-├─ runtime/     348 lines,  4 files   the per-Core composition root
-├─ save/        373 lines,  6 files   memory card and save-file phases
-└─ sync/        203 lines,  3 files   the frame turn
-       main.cpp
-tools/  —  1,015 lines,  7 files
-tests/  —  2,945 lines, 12 files
+game/  —  4,207 lines, 75 files
+├─ boot/        817 lines, 12 files   the boot spine
+├─ cd/          352 lines,  9 files   CD, libds and the disc
+├─ entry/        26 lines,  2 files   the product's catalog
+├─ execution/   444 lines,  6 files   the guest-execution seam
+├─ images/      351 lines,  8 files   image residency and cross-image call gates
+├─ input/        65 lines,  3 files   pad delivery
+├─ render/     1,176 lines, 19 files   render producers and the projection
+├─ runtime/     315 lines,  4 files   the per-Core composition root
+├─ save/        359 lines,  6 files   memory card and save-file phases
+└─ sync/        179 lines,  3 files   the frame turn
+tools/  —    975 lines,  7 files
+tests/  —  2,740 lines, 13 files
 ```
 
 Counted with `find <dir> -maxdepth 1 -type f \( -name '*.h' -o -name '*.cpp' -o -name '*.py' \)` and
@@ -315,15 +314,15 @@ Counted with `find <dir> -maxdepth 1 -type f \( -name '*.h' -o -name '*.cpp' -o 
   `game/execution/dynarec_dispatch.{h,cpp}`, and nowhere else.
 - WHICH leaves the title owns, and binding them to a generation → `game/execution/native_owners.{h,cpp}`,
   entered from the image publication boundary rather than from `registerOverrides`.
-- Order of operations for the product → `game/boot/application.{h,cpp}`. It composes; it does not
-  implement.
+- Order of operations for the product → psxport's `TitleSession::boot`; what admission means for this
+  title → `VagrantRuntime::admitExecutable`; title lines in the run-end report → `VagrantRuntime::reportRun`.
 - Per-Core product state → its owner under `game/input/`, `game/render/`, `game/save/` or `game/sync/`,
   composed by `VagrantContext` and reached through `contextOf`.
 - BATTLE world camera/projection/object production → the semantic BATTLE render owner described in
   `docs/battle-rendering.md`, never `BattleFrameProducer` or `BattleProjectionOwner`.
 - Widescreen policy → `VagrantRuntime::guestWidescreenProjection` declares it and psxport's record canvas draws the
   margins; what the guest's own screen rejects admit is `game/render/battle_cull.{h,cpp}`.
-- Render path → `VagrantRuntime::renderCapabilities` declares Record; `Application::run` installs it.
+- Render path → `VagrantRuntime::renderCapabilities` declares Record; the framework `Game` installs it.
 - Interpolation → previous/current semantic snapshot ownership beside the BATTLE world producer; guest
   RAM and post-projection queue vertices are not interpolation sources.
 - Framework-generic behavior → the single writable psxport checkout, not this consumer tree.

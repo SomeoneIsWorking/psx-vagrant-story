@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <span>
-#include <string_view>
 
 struct PlatformHlePlan;
 
@@ -52,9 +51,10 @@ public:
   // The player's aspect; the record canvas holds the margins and BATTLE's culls widen what is drawn.
   const GuestWidescreenProjection *guestWidescreenProjection() const override;
 
-  // Authenticates the title PS-X header, then delegates publication to psxport.
-  psx::cpu::PsxExeLoadResult
-  loadResidentImage(Core &core, std::span<const std::uint8_t> bytes, std::string_view imageName) const;
+  // Checks the title PS-X header, publishes the resident generation and registers its native leaves against it.
+  psx::cpu::PsxExeLoadResult admitExecutable(Core &core, std::span<const std::uint8_t> bytes) override;
+  // The guest-leg producer census beside the framework's run-end report.
+  void reportRun(Core &core) const override;
 
 private:
   static const GuestProgramImage programImage_;

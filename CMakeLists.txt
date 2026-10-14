@@ -26,12 +26,10 @@ target_link_libraries(vagrant_runtime PUBLIC psxport)
 
 # Native owners that link and test without the process adapter.
 add_library(vagrant_native STATIC
-  game/boot/application.cpp
   game/boot/exec_title_tail.cpp
   game/boot/game_heap.cpp
   game/boot/game_time.cpp
   game/boot/guest_rect.cpp
-  game/boot/resident_image.cpp
   game/boot/resident_phase.cpp
   game/cd/cd_command.cpp
   game/cd/ds_control.cpp
@@ -111,6 +109,11 @@ if(BUILD_TESTING)
 
   endif()
 
-# The shipping product: one executable over the title adapter and psxport's dynarec-only executor.
-add_executable(vagrant_port game/main.cpp)
-target_link_libraries(vagrant_port PRIVATE vagrant_native)
+# The shipping product: the framework main over the title's catalog and psxport's dynarec-only executor.
+psxport_add_product(
+  vagrant_port
+  CATALOG vagrant::createCatalog
+  HEADER entry/vagrant_catalog.h
+  SOURCES game/entry/vagrant_catalog.cpp
+  LIBRARIES vagrant_native
+)

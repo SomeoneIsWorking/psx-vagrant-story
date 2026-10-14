@@ -5,7 +5,7 @@ status: open
 symptom: S015 was `missing` with one named cause: there was no Vagrant Story adapter to psxport's dynarec-only executor, so `run.sh` refused at a boundary and nothing in the title ran. The adapter is now written, compiled into a shipping executable, and covered by negative cases. Everything that depends on a presented frame stays `missing`.
 tags: s015,dynarec,adapter,launcher,telemetry,product-slot,run-evidence
 created: 2026-09-28
-updated: 2026-09-28
+updated: 2026-10-14
 ---
 
 ## What exists
@@ -16,7 +16,8 @@ call that did not return. `vagrant::dynarec` is the only module here that spells
 image identity, or chooses a dispatch form, so there is one answer to "how long may a turn run"
 (`psx::cpu::ExecutionBudget::currentTurn`) rather than two.
 
-`game/boot/application.{h,cpp}` composes it and `game/main.cpp` is a one-call entry point.
+`VagrantRuntime` (`game/runtime/vagrant_runtime.cpp`) composes it, and the framework main runs the
+product through `game/entry/vagrant_catalog.cpp`.
 `tools/launcher/runtime_boundary.py` no longer refuses a product: it provisions the measured inputs,
 configures, builds `vagrant_port`, and launches it.
 

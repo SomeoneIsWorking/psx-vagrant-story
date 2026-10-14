@@ -21,8 +21,8 @@ over the authenticated game bytes. Read `external/psxport/CLAUDE.md` for framewo
   executable memory, and cache mechanics; this repository owns image identity and title behavior.
 - `VagrantRuntime` supplies the measured `GuestProgramImage`, the measured VSync `PlatformHlePlan`,
   the per-Core `VagrantFrameDriver`, and the resident publication boundary. It must not absorb their
-  implementations. `vagrant::Application` is the process composition owner and the only place that
-  knows the ORDER the machine becomes a product; it composes and does not implement.
+  implementations. The framework main owns the process: `vagrant::createCatalog` hands this title to
+  `ProductHost`, and `TitleSession` knows the ORDER the machine becomes a product.
 - `vagrant::dynarec` (`game/execution/dynarec_dispatch.{h,cpp}`) is the ONLY module here that resolves an
   image identity, spells an `ExecutionBudget`, or chooses a dispatch form. Add nothing that does any
   of those three elsewhere. `vagrant::installResidentNativeOwners` decides WHICH leaves the title owns

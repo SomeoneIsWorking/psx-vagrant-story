@@ -47,7 +47,7 @@ int main() {
     return 1;
   }
   const auto image = residentFixture();
-  const auto loaded = runtime.loadResidentImage(core, image, "SLUS_010.40");
+  const auto loaded = runtime.admitExecutable(core, image);
   if (!require(static_cast<bool>(loaded), "measured resident image was refused") ||
       !require(core.pc == vagrant::kResidentHeader.entry, "resident entry was not published") ||
       !require(core.currentImageIdentity(vagrant::kResidentHeader.entry).has_value(),
@@ -55,8 +55,14 @@ int main() {
     return 1;
   }
 
+  const auto admittedIdentity = core.currentImageIdentity(vagrant::kResidentHeader.entry);
   auto wrongHeader = image;
   writeWord(wrongHeader, 0x10u, vagrant::kResidentHeader.entry + 4u);
-  const auto refused = runtime.loadResidentImage(core, wrongHeader, "SLUS_010.40");
-  return require(!refused, "different PS-X header was accepted as Vagrant Story") ? 0 : 1;
+  const auto refused = runtime.admitExecutable(core, wrongHeader);
+  return require(!refused, "different PS-X header was accepted as Vagrant Story") &&
+                 require(core.pc == vagrant::kResidentHeader.entry &&
+                             core.currentImageIdentity(vagrant::kResidentHeader.entry) == admittedIdentity,
+                         "a refused image changed the Core")
+             ? 0
+             : 1;
 }

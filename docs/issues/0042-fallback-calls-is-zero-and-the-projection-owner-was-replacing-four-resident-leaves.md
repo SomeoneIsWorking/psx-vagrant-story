@@ -5,7 +5,7 @@ status: open
 symptom: issue 0041's fatal #4 is fixed at root cause, field 0 survives it, and the number S015 was `missing` for its whole life is now measured: `fallback.calls == 0` with every per-reason counter at zero beside nonzero executor counters. The boot is still incomplete: it dies in field 1 on a budget exit inside libcd's `CD_sync`.
 tags: s015,dynarec,fallback,projection,superCall,display-area,cd-sync,product-slot
 created: 2026-09-28
-updated: 2026-10-04
+updated: 2026-10-14
 ---
 
 **SUPERSEDED IN PART (2026-10-04).** Sections 1-7 record the 2026-09-28 run and are kept as the
@@ -255,7 +255,7 @@ thing to own — not part of this fix.
 ## NOT established by this issue
 
 Any gameplay. Playability, widescreen, interpolation, BATTLE, INITBTL: all still `missing`. A completed
-run, so no run-end census — `machine.run(0u)` has no field cap and this session never stopped the
-product cleanly. Whether `fallback.calls` stays 0 past the splash: measured 0 over 1,849 presented
+run, so no run-end census: this session never stopped the product cleanly. `PSXPORT_NATIVE_FRAMES` now
+ends a run through the run-end report, `reportRun`'s census included. Whether `fallback.calls` stays 0 past the splash: measured 0 over 1,849 presented
 fields, which is the first fifteen seconds of a boot and not a game. The intro movie and the Start-skip
 menu, and the `_initMemcard` poll the run now parks in.
