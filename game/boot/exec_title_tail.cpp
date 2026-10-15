@@ -37,6 +37,7 @@ void ExecTitleTail::advanceAfterField(Core &core) {
     return;
   }
   const dynarec::ContinuationStep step = phase_.advance();
+  suspendedAtField_ = step.kind == dynarec::ContinuationStep::Kind::Suspended && step.frameBoundary;
   if (step.kind == dynarec::ContinuationStep::Kind::Suspended) {
     lucent::debug(
         "vagrant-exec-tail", "suspended at 0x{:08X} ra=0x{:08X} sp=0x{:08X}", step.pc, core.r[31], core.r[29]);

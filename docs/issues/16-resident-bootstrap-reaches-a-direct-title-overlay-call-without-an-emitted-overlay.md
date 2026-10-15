@@ -14,4 +14,4 @@ emitter consumed only the resident image, so the target was a recomp-MISS.
 
 **Dead end:** adding `0x80071334` as a resident seed decodes unrelated PS-EXE bytes at an overlay
 address. The correct owner is the independently extracted TITLE image at its measured base — which is
-what `game/images/overlay_images.cpp` and `game/images/title_entry.cpp` now do.
+what `game/images/overlay_images.cpp` does.

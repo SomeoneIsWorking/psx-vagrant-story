@@ -5,10 +5,10 @@ status: resolved
 symptom: removing the static launcher's generated boot path left gameplay unavailable because no title code claimed the resident header contract
 tags: resident,image,re-02
 created: 2026-08-27
-updated: 2026-08-27
+updated: 2026-10-15
 ---
 
-`vagrant::VagrantRuntime::loadResidentImage` checks the measured `SLUS_010.40` PS-X header before
+`vagrant::Runtime::admitExecutable` checks the measured `SLUS_010.40` PS-X header before
 delegating to psxport's `loadPsxExeImage`, so the framework stays the sole owner of image catalog
 generations, invalidation and memory publication.
 

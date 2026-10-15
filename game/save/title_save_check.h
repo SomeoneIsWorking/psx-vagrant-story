@@ -8,14 +8,14 @@ class Core;
 
 namespace vagrant {
 
-enum class TitleSaveCheckState {
+enum class TitleSaveCheckState : std::uint8_t {
   Cold,
   InitFieldWait,
   EventFieldWait,
   Complete,
 };
 
-// Owner for TITLE _saveFileExists 0x8006E988; each retail VSync(2) is one return to VagrantFrameDriver.
+// Owner for TITLE _saveFileExists 0x8006E988; each retail VSync(2) is one return to the frame driver.
 class TitleSaveCheck {
 public:
   TitleSaveCheck();

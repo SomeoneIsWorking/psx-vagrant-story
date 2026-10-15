@@ -5,7 +5,7 @@ status: resolved
 symptom: the stream or BATTLE read stalled with Setloc re-sent every 0.5 s
 tags: S004,S006,S013,title,cd
 created: 2026-10-09
-updated: 2026-10-09
+updated: 2026-10-15
 ---
 
 `game/cd/cd_command.cpp:handleCdCommand`: stock sync HLE never invokes the cbsync slot (0x800321FC), so libds' deadline (0x800326C0) expired and retried; `DsControl` (0x80025B7C) also blocked.
@@ -16,4 +16,4 @@ updated: 2026-10-09
 
 ## Test
 
-`tests/test_vagrant_runtime.cpp` CD_cw completion test; `tests/test_dynarec_dispatch.cpp` `everyClaimedResidentLeafIsBound`.
+`tests/test_boot_route.cpp` CD_cw completion test; `tests/test_dynarec_dispatch.cpp` `everyClaimedResidentLeafIsBound`.

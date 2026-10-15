@@ -1,12 +1,31 @@
 #pragma once
 
-#include "runtime/vagrant_runtime.h"
 #include "title_catalog.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace vagrant {
+
+// Header facts from the authenticated SLUS_010.40; the framework image view holds only mapping facts.
+struct ResidentHeaderFacts {
+  std::uint32_t entry;
+  std::uint32_t globalPointer;
+  std::uint32_t textAddress;
+  std::uint32_t textBytes;
+  std::uint32_t stackBase;
+  std::uint32_t stackOffset;
+};
+
+inline constexpr ResidentHeaderFacts kResidentHeader{
+    .entry = 0x8001F544u,
+    .globalPointer = 0u,
+    .textAddress = 0x80010000u,
+    .textBytes = 0x00052000u,
+    .stackBase = 0x801FFFF0u,
+    .stackOffset = 0u,
+};
 
 // Catalog name of this generation; provisioning names the same strings.
 inline constexpr std::string_view kResidentImageName = "SLUS_010.40";

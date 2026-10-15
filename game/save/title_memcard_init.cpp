@@ -1,7 +1,7 @@
 #include "save/title_memcard_init.h"
 
 #include "core.h"
-#include "runtime/vagrant_context.h"
+#include "runtime/session.h"
 #include "save/title_memcard_facts.h"
 
 #include <cstdlib>

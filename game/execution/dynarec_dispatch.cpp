@@ -4,7 +4,6 @@
 #include "guest_call.h"
 #include "native_dispatch.h"
 #include "resumable_guest_call.h"
-#include "runtime/vagrant_context.h"
 
 #include <lucent/log.h>
 

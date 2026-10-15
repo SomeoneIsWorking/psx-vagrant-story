@@ -1,8 +1,8 @@
 #include "cd/ds_control.h"
 
 #include "cd/cd_facts.h"
-#include "cd_control.h"
 #include "core.h"
+#include "runtime/runtime.h"
 
 #include <cstdlib>
 #include <lucent/log.h>
@@ -25,7 +25,7 @@ void handleDsControl(Core &core) {
     std::abort();
   }
   lucent::debug("vagrant-cd", "DsControl command 0x{:02X} param=0x{:08X}", command, param);
-  cd_control_sync(&core);
+  Runtime::from(core).libcd().control(core);
   // DsControl blocks in retail; the native controller completes synchronously, so clear the previous retry deadline.
   core.mem_w32(kSystemState, kSystemReady);
   core.mem_w32(kCommandDeadline, 0u);

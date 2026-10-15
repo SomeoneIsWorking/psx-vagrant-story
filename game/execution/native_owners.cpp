@@ -9,7 +9,7 @@
 #include "images/battle_transfer.h"
 #include "render/battle_cull.h"
 #include "render/battle_projection.h"
-#include "runtime/vagrant_context.h"
+#include "runtime/session.h"
 
 #include <cstdlib>
 #include <lucent/log.h>
@@ -60,7 +60,7 @@ void dsReadyOverride(Core *core) {
   const std::uint32_t intr = core->r[4];
   const std::uint32_t result = core->r[5];
   const std::uint32_t returnAddress = core->r[31];
-  contextOf(*core).libDsField.completeOwedCommand(*core);
+  session(*core).libDsField.completeOwedCommand(*core);
   core->r[4] = intr;
   core->r[5] = result;
   core->r[31] = returnAddress;
@@ -74,7 +74,7 @@ namespace {
 // `_loadBattlePrg` waits on the CD queue for both overlays; the finite read publishes them whole instead, and the
 // trailing `vs_overlay_wait` is a 4096-instruction nop sled.
 void loadBattleProgramsOverride(Core *core) {
-  const OverlayLoadResult loaded = readAndLoadBattle(*core, contextOf(*core).overlayImages, cd::readDiscSector);
+  const OverlayLoadResult loaded = readAndLoadBattle(*core, session(*core).overlayImages, cd::readDiscSector);
   if (loaded) {
     lucent::info("vagrant-owners", "BATTLE.PRG and INITBTL.PRG loaded as published images");
     if (!battle_cull::installBattleCull(*core)) {

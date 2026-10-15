@@ -9,7 +9,7 @@ class Core;
 
 namespace vagrant {
 
-enum class TitleExecState {
+enum class TitleExecState : std::uint8_t {
   Cold,
   Running,
   Complete,

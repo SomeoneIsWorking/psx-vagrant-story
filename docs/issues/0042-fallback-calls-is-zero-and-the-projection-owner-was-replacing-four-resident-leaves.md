@@ -1,12 +1,14 @@
 ---
 id: 42
 title: `fallback.calls` is 0 in a real run, the projection owner was REPLACING four resident leaves, and the `CD_sync` wait was two unbound leaves
-status: open
+status: resolved
 symptom: issue 0041's fatal #4 is fixed at root cause, field 0 survives it, and the number S015 was `missing` for its whole life is now measured: `fallback.calls == 0` with every per-reason counter at zero beside nonzero executor counters. The boot is still incomplete: it dies in field 1 on a budget exit inside libcd's `CD_sync`.
 tags: s015,dynarec,fallback,projection,superCall,display-area,cd-sync,product-slot
 created: 2026-09-28
-updated: 2026-10-14
+updated: 2026-10-15
 ---
+
+**Resolved 2026-10-15.** The boot runs resident → TITLE → New Game → BATTLE prologue → warped free roam in one run (4:3 recordcheck `mismatched=0` over 8935 fields). Names below predate the restructure: `VagrantRuntime` is now `vagrant::Runtime`, `VagrantContext`/`contextOf` are `vagrant::Session`/`session`, `VagrantFrameDriver` is `vagrant::FrameDriver` (`game/frame/`), and the render-queue producers are deleted.
 
 **SUPERSEDED IN PART (2026-10-04).** Sections 1-7 record the 2026-09-28 run and are kept as the
 measurement that produced them. Section 6's conclusion — that the `CD_sync` wait needed a declared

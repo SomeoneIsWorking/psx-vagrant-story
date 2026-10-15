@@ -2,6 +2,8 @@
 
 #include "core.h"
 #include "game.h"
+#include "runtime/runtime.h"
+#include "typed_config.h"
 
 #include <cstdio>
 #include <memory>
@@ -25,7 +27,8 @@ void expect_word(const char *what, std::uint32_t got, std::uint32_t want) {
 } // namespace
 
 int main() {
-  auto game = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
   Core *c = &game->core;
 
   // Guest ABI: a0 = first arena node, a1 = arena size (measured unique call site 0x80042B2C).

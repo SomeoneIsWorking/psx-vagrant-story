@@ -157,7 +157,17 @@ OverlayLoadResult OverlayImages::publish(OverlayKind kind,
   }
   const auto identity = core_.imageCatalog().activate(spec->name, imageRange, contentIdentity);
   active_[*slot] = identity;
+  activeKind_[*slot] = kind;
   return {identity, {}};
+}
+
+std::optional<psx::cpu::ImageIdentity> OverlayImages::resident(OverlayKind kind) const {
+  const OverlaySpec *spec = specFor(kind);
+  const auto slot = spec == nullptr ? std::nullopt : slotFor(spec->guestBase);
+  if (!slot || activeKind_[*slot] != kind) {
+    return std::nullopt;
+  }
+  return active_[*slot];
 }
 
 } // namespace vagrant

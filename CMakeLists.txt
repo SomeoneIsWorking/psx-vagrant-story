@@ -19,13 +19,8 @@ set(PSXPORT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(PSXPORT_BUILD_SMOKE OFF CACHE BOOL "" FORCE)
 add_subdirectory("${PSXPORT_DIR}" framework EXCLUDE_FROM_ALL)
 
-add_library(vagrant_runtime STATIC
-  game/images/overlay_images.cpp)
-target_include_directories(vagrant_runtime PUBLIC game)
-target_link_libraries(vagrant_runtime PUBLIC psxport)
-
-# Native owners that link and test without the process adapter.
-add_library(vagrant_native STATIC
+# The title's owners; the product and every test link them.
+add_library(vagrant_game STATIC
   game/boot/exec_title_tail.cpp
   game/boot/game_heap.cpp
   game/boot/game_time.cpp
@@ -38,82 +33,41 @@ add_library(vagrant_native STATIC
   game/execution/dynarec_dispatch.cpp
   game/execution/guest_phase.cpp
   game/execution/native_owners.cpp
+  game/frame/frame_driver.cpp
+  game/frame/location_warp.cpp
   game/images/battle_transfer.cpp
-  game/images/title_entry.cpp
+  game/images/overlay_images.cpp
   game/images/title_transfer.cpp
-  game/input/pad_delivery.cpp
+  game/input/pad_buffers.cpp
   game/render/battle_cull.cpp
-  game/render/battle_frame.cpp
   game/render/battle_projection.cpp
-  game/render/title_menu.cpp
-  game/render/title_movie.cpp
   game/render/title_splash.cpp
-  game/render/title_startup.cpp
-  game/render/title_startup_recipe.cpp
-  game/runtime/vagrant_context.cpp
-  game/runtime/vagrant_runtime.cpp
+  game/runtime/runtime.cpp
+  game/runtime/session.cpp
   game/save/title_memcard_init.cpp
   game/save/title_save_check.cpp
-  game/sync/frame_loop.cpp
   game/title/title_exec_phase.cpp)
-target_include_directories(vagrant_native PUBLIC game)
-target_link_libraries(vagrant_native PUBLIC psxport vagrant_runtime)
+target_include_directories(vagrant_game PUBLIC game)
+target_link_libraries(vagrant_game PUBLIC psxport)
 
 if(BUILD_TESTING)
   add_test(NAME vagrant_cpp_ownership
     COMMAND "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_cpp_style.py" --ownership-only
             --root "${CMAKE_CURRENT_SOURCE_DIR}" --compile-commands "${CMAKE_BINARY_DIR}")
-  add_executable(vagrant_image_contract tests/test_vagrant_image_contract.cpp)
-  target_link_libraries(vagrant_image_contract PRIVATE vagrant_native)
-  add_test(NAME vagrant_image_contract COMMAND vagrant_image_contract)
-
-  add_executable(vagrant_overlay_images tests/test_vagrant_overlay_images.cpp)
-  target_link_libraries(vagrant_overlay_images PRIVATE vagrant_native)
-  add_test(NAME vagrant_overlay_images COMMAND vagrant_overlay_images)
-
-  add_executable(vagrant_title_entry tests/test_vagrant_title_entry.cpp)
-  target_link_libraries(vagrant_title_entry PRIVATE vagrant_native)
-  add_test(NAME vagrant_title_entry COMMAND vagrant_title_entry)
-
-  add_executable(vagrant_ds_control_contract tests/test_ds_control_contract.cpp)
-  target_link_libraries(vagrant_ds_control_contract PRIVATE vagrant_native)
-  add_test(NAME vagrant_ds_control_contract COMMAND vagrant_ds_control_contract)
-
-  add_executable(vagrant_game_heap tests/test_game_heap.cpp)
-  target_link_libraries(vagrant_game_heap PRIVATE vagrant_native)
-  add_test(NAME vagrant_game_heap COMMAND vagrant_game_heap)
-
-  add_executable(vagrant_title_startup_recipe tests/test_title_startup_recipe.cpp)
-  target_link_libraries(vagrant_title_startup_recipe PRIVATE vagrant_native)
-  add_test(NAME vagrant_title_startup_recipe COMMAND vagrant_title_startup_recipe)
-
-  add_executable(vagrant_native_runtime tests/test_vagrant_runtime.cpp)
-  target_link_libraries(vagrant_native_runtime PRIVATE vagrant_native)
-  add_test(NAME vagrant_native_runtime COMMAND vagrant_native_runtime)
-
-  add_executable(vagrant_title_transfer tests/test_vagrant_title_transfer.cpp)
-  target_link_libraries(vagrant_title_transfer PRIVATE vagrant_native)
-  add_test(NAME vagrant_title_transfer COMMAND vagrant_title_transfer)
-
-  add_executable(vagrant_battle_projection tests/test_battle_projection.cpp)
-  target_link_libraries(vagrant_battle_projection PRIVATE vagrant_native)
-  add_test(NAME vagrant_battle_projection COMMAND vagrant_battle_projection)
-
-  add_executable(vagrant_battle_cull tests/test_battle_cull.cpp)
-  target_link_libraries(vagrant_battle_cull PRIVATE vagrant_native)
-  add_test(NAME vagrant_battle_cull COMMAND vagrant_battle_cull)
-
-  add_executable(vagrant_dynarec_dispatch tests/test_dynarec_dispatch.cpp)
-  target_link_libraries(vagrant_dynarec_dispatch PRIVATE vagrant_native)
-  add_test(NAME vagrant_dynarec_dispatch COMMAND vagrant_dynarec_dispatch)
-
-  endif()
+  foreach(test_name
+          battle_cull battle_projection boot_route ds_control_contract dynarec_dispatch frame_driver game_heap
+          image_contract location_warp overlay_images title_transfer)
+    add_executable(vagrant_${test_name} tests/test_${test_name}.cpp)
+    target_link_libraries(vagrant_${test_name} PRIVATE vagrant_game psxport_test_support)
+    add_test(NAME vagrant_${test_name} COMMAND vagrant_${test_name})
+  endforeach()
+endif()
 
 # The shipping product: the framework main over the title's catalog and psxport's dynarec-only executor.
 psxport_add_product(
   vagrant_port
   CATALOG vagrant::createCatalog
-  HEADER entry/vagrant_catalog.h
-  SOURCES game/entry/vagrant_catalog.cpp
-  LIBRARIES vagrant_native
+  HEADER product/catalog.h
+  SOURCES game/product/catalog.cpp
+  LIBRARIES vagrant_game
 )

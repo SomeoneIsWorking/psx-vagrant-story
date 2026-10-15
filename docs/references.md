@@ -52,7 +52,7 @@ SLUS_010.40 alone) is a map into the exact executable this repo extracts.
    borrowed address is a HYPOTHESIS until measured against these bytes; the workspace has already
    recorded wrong conclusions from reading an address out of the wrong image. RE-01 is the pattern to
    copy: the boot group's eleven values are DERIVED by executing crt0 on our extracted image rather
-   than read out of the decompilation, and the current `game/runtime/vagrant_runtime.cpp` retains the
+   than read out of the decompilation, and `game/boot/resident_image.h` retains the
    measured resident bootstrap facts. The decomp's names for the same addresses (`__ra_temp`,
    `_ramsize`, `_stacksize`, `__heapbase`, `__heapsize`, `InitHeap`, `vs_main_exec`,
    `__SN_ENTRY_POINT`) turned out to agree —

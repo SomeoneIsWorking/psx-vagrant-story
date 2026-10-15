@@ -7,11 +7,12 @@
 #include "execution/dynarec_dispatch.h"
 #include "game.h"
 #include "images/overlay_images.h"
+#include "input/pad_buffers.h"
 #include "input/pad_facts.h"
 #include "lightrec_executor.h"
 #include "lucent/content.h"
-#include "runtime/vagrant_context.h"
-#include "runtime/vagrant_runtime.h"
+#include "runtime/runtime.h"
+#include "typed_config.h"
 
 #include "boot/resident_facts.h"
 
@@ -95,7 +96,7 @@ void nativeLeaf(Core *) {
 }
 
 struct Machine {
-  std::unique_ptr<vagrant::VagrantRuntime> runtime;
+  std::unique_ptr<vagrant::Runtime> runtime;
   std::unique_ptr<Game> game;
   Core &core() {
     return game->core;
@@ -107,18 +108,17 @@ bool ownedBy(const Core &core, std::uint32_t address, psx::cpu::ImageIdentity im
   return core.currentImageIdentity(address) == image;
 }
 
-std::unique_ptr<Machine> makeMachine(const std::vector<std::uint8_t> &resident) {
+std::unique_ptr<Machine> makeMachine() {
   auto machine = std::make_unique<Machine>();
-  machine->runtime = std::make_unique<vagrant::VagrantRuntime>();
-  psxport_install_game(*machine->runtime);
-  machine->game = std::make_unique<Game>();
+  machine->runtime = std::make_unique<vagrant::Runtime>();
+  machine->game = std::make_unique<Game>(*machine->runtime, psx::config::Config{});
   return machine;
 }
 
 // 1. A real translated block executes and returns the guest's own result.
 void executesRealGuestCode() {
   const auto bytes = residentFixture(0x2Du);
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
   const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "execute", "the measured resident image was refused");
@@ -145,7 +145,7 @@ void reportsTypedExitOnBudgetExhaustion() {
   const auto entryOffset = 0x800u + vagrant::kResidentHeader.entry - vagrant::kResidentHeader.textAddress;
   writeWord(bytes, entryOffset, 0x1000FFFFu);      // beq $zero,$zero,-1 : branch to itself
   writeWord(bytes, entryOffset + 4u, 0x00000000u); // delay slot: nop
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
   const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "typed-exit", "the loop fixture was refused as an image");
@@ -166,7 +166,7 @@ void reportsTypedExitOnBudgetExhaustion() {
 // 3. An override is refused for an address with no active image or a different generation.
 void refusesUnscopedAndStaleGenerations() {
   const auto bytes = residentFixture(7u);
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
 
   // (a) Before any image is published there is no image to attribute a leaf to.
@@ -215,7 +215,7 @@ void refusesUnscopedAndStaleGenerations() {
 // 4. `callOriginal` suppresses only the key it names, for one call.
 void originalCallReachesTheGuestBody() {
   const auto bytes = residentFixture(0x11u);
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
   const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "original", "the measured resident image was refused");
@@ -257,7 +257,7 @@ void originalCallReachesTheGuestBody() {
 // 6. The heap leaf is reachable through the title registry, keyed to the resident generation.
 void registersTheMeasuredHeapLeaf() {
   const auto bytes = residentFixture(0u);
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
   const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "heap-leaf", "the measured resident image was refused");
@@ -277,7 +277,7 @@ void registersTheMeasuredHeapLeaf() {
 // (0x80020F28).
 void everyClaimedResidentLeafIsBound() {
   const auto bytes = residentFixture(0u);
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
   const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "bound-leaves", "the measured resident image was refused");
@@ -299,27 +299,29 @@ void everyClaimedResidentLeafIsBound() {
   }
 }
 
-// 6c. The host publishes the pad packet only into buffers the runtime declares; the title's PadInitDirect pair is
-// declared.
-void declaresThePadReceiveBuffers() {
-  auto machine = makeMachine(residentFixture(0u));
-  const GuestPadBufferLayout *layout = machine->runtime->guestPadBufferLayout();
-  require(
-      layout != nullptr, "pad-layout", "the runtime declares no pad receive buffers, so no input reaches the guest");
-  if (layout == nullptr) {
-    return;
-  }
-  require(layout->slot0Buffer == vagrant::pad::kSlot0Buffer && layout->slot1Buffer == vagrant::pad::kSlot1Buffer &&
-              layout->slotPointerTable == vagrant::pad::kDriverPointerTable &&
-              layout->slotPointerStride == vagrant::pad::kDriverPointerStride,
-          "pad-layout",
-          "the declared pad buffers differ from the measured PadInitDirect registration");
+// 6c. The PadInitDirect buffers get the packet with the button bytes in the order this title's driver reads them.
+void deliversThePadPacketInDriverOrder() {
+  auto machine = makeMachine();
+  Core &core = machine->core();
+  const vagrant::PadBuffers buffers;
+  buffers.deliver(core, {.packet = {0x41u, 0x5Au, 0xEFu, 0x7Fu}, .slot1Connected = false});
+  require(core.mem_r8(vagrant::pad::kSlot0Buffer) == 0x41u && core.mem_r8(vagrant::pad::kSlot0Buffer + 2u) == 0x7Fu &&
+              core.mem_r8(vagrant::pad::kSlot0Buffer + 3u) == 0xEFu,
+          "pad-buffers",
+          "slot 0's button bytes are not in the driver's order");
+  require(core.mem_r8(vagrant::pad::kSlot1Buffer) == 0xFFu, "pad-buffers", "a disconnected slot 1 did not read 0xFF");
+  const std::uint32_t installed = 0x80100000u;
+  core.mem_w32(vagrant::pad::kDriverPointerTable, installed);
+  buffers.deliver(core, {.packet = {0x41u, 0x5Au, 0xFEu, 0xF7u}, .slot1Connected = false});
+  require(core.mem_r8(installed + 2u) == 0xF7u && core.mem_r8(installed + 3u) == 0xFEu,
+          "pad-buffers",
+          "the buffer the driver installed did not receive the packet");
 }
 
 // 7. Replacing an overlay generation retires its override keys; the resident leaf survives (its range is disjoint).
 void overlayReplacementRetiresThePriorGenerationsKeys() {
   const auto bytes = residentFixture(0u);
-  auto machine = makeMachine(bytes);
+  auto machine = makeMachine();
   Core &core = machine->core();
   const auto loaded = machine->runtime->admitExecutable(core, bytes);
   require(static_cast<bool>(loaded), "overlay-retire", "the measured resident image was refused");
@@ -388,7 +390,7 @@ void runEveryGroup() {
   originalCallReachesTheGuestBody();
   registersTheMeasuredHeapLeaf();
   everyClaimedResidentLeafIsBound();
-  declaresThePadReceiveBuffers();
+  deliversThePadPacketInDriverOrder();
   overlayReplacementRetiresThePriorGenerationsKeys();
 }
 

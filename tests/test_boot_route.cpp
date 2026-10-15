@@ -4,16 +4,17 @@
 #include "cd/cd_facts.h"
 #include "cd/native_file.h"
 #include "core.h"
+#include "frame/vsync_facts.h"
 #include "game.h"
 #include "lucent/content.h"
 #include "render/title_splash_facts.h"
-#include "runtime/vagrant_context.h"
+#include "runtime/runtime.h"
+#include "runtime/session.h"
 #include "save/title_memcard_facts.h"
 #include "save/title_memcard_init.h"
 #include "save/title_save_facts.h"
-#include "sync/frame_loop.h"
-#include "sync/vsync_facts.h"
 #include "title/title_exec_facts.h"
+#include "typed_config.h"
 
 #include <cstdio>
 #include <memory>
@@ -21,8 +22,6 @@
 
 namespace {
 constexpr std::size_t kRetailTitleImageBytes = 554568u;
-int g_events[16] = {};
-int g_eventCount = 0;
 struct GuestCall {
   std::uint32_t address;
   std::uint32_t args[4];
@@ -38,53 +37,10 @@ struct FileRead {
 FileRead g_fileReads[8] = {};
 int g_fileReadCount = 0;
 int g_cardStartCalls = 0;
-bool g_titleStartupReady = false;
-bool g_titleMenuReady = false;
-bool g_battleReady = false;
-bool g_titleMovieReady = false;
 std::uint32_t g_memcardEvents[8] = {};
 int g_memcardEventCount = 0;
 int g_memcardEventIndex = 0;
 std::uint32_t g_firstFileResult = 0u;
-
-void record(int event) {
-  g_events[g_eventCount++] = event;
-}
-
-void input(Core &) {
-  record(1);
-}
-void audio(Core &) {
-  record(2);
-}
-bool titleStartup(Core &) {
-  record(3);
-  return g_titleStartupReady;
-}
-bool titleMenu(Core &) {
-  record(4);
-  return g_titleMenuReady;
-}
-bool battle(Core &) {
-  record(5);
-  return g_battleReady;
-}
-bool titleMovie(Core &) {
-  record(6);
-  return g_titleMovieReady;
-}
-void present(Core &) {
-  record(7);
-}
-void pace(Core &) {
-  record(8);
-}
-void libDs(Core &) {
-  record(9);
-}
-void resumeResident(Core &) {
-  record(10);
-}
 
 std::uint32_t recordCall(std::uint32_t address,
                          int arity,
@@ -180,18 +136,6 @@ public:
   std::uint32_t returnPc = 0;
 };
 
-bool expectEvents(const int *expected, int count) {
-  if (g_eventCount != count) {
-    return false;
-  }
-  for (int i = 0; i < count; ++i) {
-    if (g_events[i] != expected[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool expectCallAddresses(const std::uint32_t *expected, int count) {
   if (g_callCount != count) {
     return false;
@@ -206,7 +150,8 @@ bool expectCallAddresses(const std::uint32_t *expected, int count) {
 } // namespace
 
 int main() {
-  auto game = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
   std::vector<std::uint8_t> titleBytes(kRetailTitleImageBytes, 0u);
   auto titleHash = lucent::content::sha256_hex(
       lucent::content::sha256({reinterpret_cast<const std::byte *>(titleBytes.data()), titleBytes.size()}));
@@ -215,9 +160,8 @@ int main() {
       {vagrant::OverlayKind::Battle, "BATTLE.PRG", 0x80068800u, 4u, titleHash},
       {vagrant::OverlayKind::InitBattle, "INITBTL.PRG", 0x800F9800u, 4u, titleHash},
   }};
-  vagrant::VagrantContext contextStorage(game->core, std::move(specs));
-  game->core.gameCtx = &contextStorage;
-  auto *context = &contextStorage;
+  game->sessionState = std::make_unique<vagrant::Session>(game->core, std::move(specs));
+  vagrant::Session *context = &vagrant::session(game->core);
   context->libDsField = vagrant::cd::LibDsField({.call0 = libDsCall0, .call2 = libDsCall2});
   const vagrant::ResidentCallServices residentServices{
       .call0 = guestCall0,
@@ -239,19 +183,6 @@ int main() {
   execTailCall->suspendedFields = 1;
   context->execTitleTail = vagrant::ExecTitleTail(std::move(fakeTail));
 
-  vagrant::FrameServices services{
-      .input = input,
-      .audio = audio,
-      .titleStartup = titleStartup,
-      .titleMenu = titleMenu,
-      .battle = battle,
-      .titleMovie = titleMovie,
-      .present = present,
-      .pace = pace,
-      .libDs = libDs,
-      .resumeResident = resumeResident,
-  };
-  vagrant::VagrantFrameDriver driver(services);
   game->core.r[29] = 0x801FFFF8u;
   const std::uint32_t initialStack = game->core.r[29];
   context->residentPhase.begin(game->core);
@@ -270,36 +201,6 @@ int main() {
     std::fprintf(stderr, "boot did not stop at InitCARD's exact native-owned field boundary\n");
     return 1;
   }
-  g_eventCount = 0;
-  driver.stepFrame(game->core, 41);
-  const int residentEvents[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  if (!expectEvents(residentEvents, 10) || driver.lastFieldOwner() != vagrant::FieldOwner::Resident ||
-      game->timing.logicFrame != 41) {
-    std::fprintf(stderr, "resident field did not own input/audio/arbitration/present/pace/resume exactly once\n");
-    return 1;
-  }
-
-  g_battleReady = true;
-  g_eventCount = 0;
-  driver.stepFrame(game->core, 42);
-  const int battleEvents[] = {1, 2, 3, 4, 5, 7, 8, 9, 10};
-  if (!expectEvents(battleEvents, 9) || driver.lastFieldOwner() != vagrant::FieldOwner::Battle ||
-      game->timing.logicFrame != 42) {
-    std::fprintf(stderr, "BATTLE completed fence did not short-circuit TITLE movie and present once\n");
-    return 1;
-  }
-
-  g_battleReady = false;
-  g_titleMenuReady = true;
-  g_eventCount = 0;
-  driver.stepFrame(game->core, 43);
-  const int titleEvents[] = {1, 2, 3, 4, 7, 8, 9, 10};
-  if (!expectEvents(titleEvents, 8) || driver.lastFieldOwner() != vagrant::FieldOwner::Title ||
-      game->timing.logicFrame != 43) {
-    std::fprintf(stderr, "TITLE completed fence did not short-circuit later owners and present once\n");
-    return 1;
-  }
-
   // Real ResidentPhase through the finite-call seam: InitCARD returns after one field, then _sysInit completes and
   // TITLE reaches _displayLoadingScreen's VSync(2).
   g_callCount = 0;
@@ -651,37 +552,21 @@ int main() {
     }
   }
 
-  context->battleFrame.frameCompleted();
-  if (!context->battleFrame.frameReady()) {
-    std::fprintf(stderr, "VagrantContext did not retain BATTLE frame producer state\n");
-    return 1;
-  }
-  context->titleMovie.frameCompleted();
-  if (!context->titleMovie.frameReady()) {
-    std::fprintf(stderr, "VagrantContext did not retain TITLE movie producer state\n");
-    return 1;
-  }
-  context->titleMenu.frameCompleted();
-  if (!context->titleMenu.frameReady()) {
-    std::fprintf(stderr, "VagrantContext did not retain TITLE menu producer state\n");
-    return 1;
-  }
-
-  // Only a suspension at the guest's own VSync completes a menu pass; an exhausted turn is mid-pass.
+  // Only a suspension at the guest's own VSync is a field boundary; an exhausted turn is mid-frame.
   {
-    context->titleMenu = vagrant::TitleMenuProducer{};
     auto boundaryFake = std::make_unique<FakeContinuation>();
     FakeContinuation *boundaryCall = boundaryFake.get();
-    vagrant::TitleExecPhase boundaryPhase(std::move(boundaryFake));
-    boundaryPhase.begin(game->core, 0u);
-    if (context->titleMenu.frameReady()) {
-      std::fprintf(stderr, "an exhausted TITLE turn completed a menu pass\n");
+    boundaryCall->suspendedFields = 3;
+    vagrant::ExecTitleTail boundaryTail(std::move(boundaryFake));
+    boundaryTail.begin(game->core, 0u);
+    if (boundaryTail.suspendedAtField()) {
+      std::fprintf(stderr, "an exhausted vs_main_execTitle turn was taken for a field boundary\n");
       return 1;
     }
     boundaryCall->frameBoundary = true;
-    boundaryPhase.advanceAfterField(game->core);
-    if (!context->titleMenu.frameReady()) {
-      std::fprintf(stderr, "a TITLE VSync suspension did not complete the menu pass\n");
+    boundaryTail.advanceAfterField(game->core);
+    if (!boundaryTail.suspendedAtField()) {
+      std::fprintf(stderr, "a vs_main_execTitle VSync suspension was not taken for a field boundary\n");
       return 1;
     }
   }

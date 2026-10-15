@@ -9,12 +9,30 @@
 #include "execution/dynarec_dispatch.h"
 #include "images/title_transfer.h"
 #include "render/title_splash_facts.h"
-#include "runtime/vagrant_context.h"
+#include "runtime/session.h"
 
+#include <array>
 #include <cstdlib>
 #include <lucent/log.h>
 
 namespace vagrant {
+namespace {
+
+// _initSound's menu banks, in its own order; WAVE banks land in heap blocks, EFFECT00 at the fixed SFX buffer.
+struct MenuLoad {
+  std::uint32_t lba;
+  std::uint32_t size;
+  bool heapBuffer;
+};
+
+constexpr std::array<MenuLoad, 4> kMenuLoads{{
+    {resident::kWave0000Lba, resident::kWave0000Size, true},
+    {resident::kWave0005Lba, resident::kWave0005Size, true},
+    {resident::kWave0200Lba, resident::kWave0200Size, true},
+    {resident::kEffect00Lba, resident::kEffect00Size, false},
+}};
+
+} // namespace
 
 ResidentCallServices productionResidentCallServices() {
   return {.call0 = dynarec::callReturning0,
@@ -98,7 +116,7 @@ void ResidentPhase::finishSysInit(Core &core) {
   services_.call0(core, resident::kResetPadAct);
   services_.call0(core, resident::kReverbOff);
   services_.call0(core, resident::kDsInit);
-  contextOf(core).libDsField.completeSynchronousInit(core);
+  session(core).libDsField.completeSynchronousInit(core);
   services_.call0(core, resident::kInitRand);
   core.mem_w32(resident::kResetEnabled, 1u);
   core.mem_w32(resident::kSaveGameClearData, 0u);
@@ -192,19 +210,7 @@ void ResidentPhase::beginMenuSoundBody(Core &core) {
 }
 
 void ResidentPhase::beginMenuLoad(Core &core) {
-  struct MenuLoad {
-    std::uint32_t lba;
-    std::uint32_t size;
-    bool heapBuffer;
-  };
-  static constexpr MenuLoad kLoads[] = {
-      {resident::kWave0000Lba, resident::kWave0000Size, true},
-      {resident::kWave0005Lba, resident::kWave0005Size, true},
-      {resident::kWave0200Lba, resident::kWave0200Size, true},
-      {resident::kEffect00Lba, resident::kEffect00Size, false},
-  };
-
-  const MenuLoad &load = kLoads[menuLoadIndex_];
+  const MenuLoad &load = kMenuLoads.at(menuLoadIndex_);
   menuLoadBuffer_ = load.heapBuffer ? services_.call1(core, resident::kAllocHeapR, load.size) : resident::kSfxData;
   if (!services_.readFile(core, load.lba, load.size, menuLoadBuffer_)) {
     lucent::error("vagrant-resident",
@@ -233,7 +239,7 @@ void ResidentPhase::finishMenuLoad(Core &core) {
     services_.call1(core, resident::kBindSfxBlob, menuLoadBuffer_);
   }
 
-  if (++menuLoadIndex_ < 4u) {
+  if (++menuLoadIndex_ < kMenuLoads.size()) {
     beginMenuLoad(core);
     return;
   }
@@ -258,7 +264,7 @@ void ResidentPhase::finishTitleReinit(Core &core) {
   core.mem_w32(resident::kGameTime, 0u);
   core.mem_w32(resident::kMainStateFlag, 0u);
   core.r[29] += 0x30u;
-  auto &overlays = contextOf(core).overlayImages;
+  auto &overlays = session(core).overlayImages;
   auto admitted = readAndLoadTitle(core, overlays, services_.readSector);
   if (!admitted) {
     lucent::error("vagrant-resident", "TITLE.PRG load refused: {}", admitted.detail);
@@ -276,7 +282,7 @@ void ResidentPhase::enterTitleProgram(Core &core) {
     services_.call0(core, title_splash::kGameSaveScreen);
   }
   services_.call0(core, title_splash::kInitGameData);
-  contextOf(core).titleSplash.begin(core);
+  session(core).titleSplash.begin(core);
   state_ = ResidentPhaseState::TitleSplashRunning;
   lucent::info("vagrant-resident", "TITLE entry prefix reached the native-owned publisher/developer splash");
 }
@@ -287,40 +293,40 @@ void ResidentPhase::advanceAfterField(Core &core) {
     return;
   }
   if (state_ == ResidentPhaseState::TitleSplashRunning) {
-    if (!contextOf(core).titleSplash.complete()) {
+    if (!session(core).titleSplash.complete()) {
       return;
     }
     core.mem_w32(title_splash::kIntroMoviePlaying, 0u);
     core.mem_w32(title_splash::kTitleScreenCount, core.mem_r32(title_splash::kTitleScreenCount) + 1u);
-    contextOf(core).titleSaveCheck.begin(core);
+    session(core).titleSaveCheck.begin(core);
     state_ = ResidentPhaseState::TitleSaveCheckRunning;
     return;
   }
   if (state_ == ResidentPhaseState::TitleSaveCheckRunning) {
-    auto &saveCheck = contextOf(core).titleSaveCheck;
+    auto &saveCheck = session(core).titleSaveCheck;
     saveCheck.advanceAfterField(core);
     if (!saveCheck.complete()) {
       return;
     }
     state_ = ResidentPhaseState::TitleExecRunning;
     lucent::info("vagrant-resident", "TITLE save-file check completed; vs_title_exec continues as guest code");
-    contextOf(core).titleExec.begin(core, saveCheck.saveFileExists() ? 1u : 0u);
+    session(core).titleExec.begin(core, saveCheck.saveFileExists() ? 1u : 0u);
     return;
   }
   if (state_ == ResidentPhaseState::TitleExecRunning) {
-    auto &titleExec = contextOf(core).titleExec;
+    auto &titleExec = session(core).titleExec;
     titleExec.advanceAfterField(core);
     if (titleExec.complete()) {
       state_ = ResidentPhaseState::ExecTitleTailRunning;
       lucent::info("vagrant-resident",
                    "TITLE returned option {}; vs_main_execTitle continues as guest code",
                    titleExec.selectedOption());
-      contextOf(core).execTitleTail.begin(core, titleExec.selectedOption());
+      session(core).execTitleTail.begin(core, titleExec.selectedOption());
     }
     return;
   }
   if (state_ == ResidentPhaseState::ExecTitleTailRunning) {
-    contextOf(core).execTitleTail.advanceAfterField(core);
+    session(core).execTitleTail.advanceAfterField(core);
     return;
   }
   if (state_ == ResidentPhaseState::InitCardFieldWait) {

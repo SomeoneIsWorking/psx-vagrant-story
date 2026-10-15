@@ -8,7 +8,7 @@ class Core;
 
 namespace vagrant {
 
-enum class TitleMemcardInitState {
+enum class TitleMemcardInitState : std::uint8_t {
   Cold,
   FirstExtentReady,
   SecondExtentReady,
