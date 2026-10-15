@@ -2,7 +2,7 @@
 
 #include "boot/game_time.h"
 #include "core.h"
-#include "runtime/vagrant_context.h"
+#include "runtime/session.h"
 #include "save/title_memcard_facts.h"
 #include "save/title_save_facts.h"
 
@@ -29,7 +29,7 @@ void TitleSaveCheck::begin(Core &core) {
   core.r[29] -= title_save::kStackFrameSize;
   // `_saveFileExists` opens with `_initMemcard(1)`, reached through TitleMemcardInit: the guest body waits on an
   // interrupt-driven CD queue completion that never fires here.
-  (void)contextOf(core).titleMemcardInit.invoke(core, 1u);
+  (void)session(core).titleMemcardInit.invoke(core, 1u);
   state_ = TitleSaveCheckState::InitFieldWait;
 }
 
@@ -52,7 +52,7 @@ void TitleSaveCheck::finishInitField(Core &core) {
   services_.call0(core, title_save::kAsmNop);
   services_.call0(core, title_save::kProcessCdQueue);
   game_time::advance(core);
-  if (contextOf(core).titleMemcardInit.invoke(core, 0u) == 0u) {
+  if (session(core).titleMemcardInit.invoke(core, 0u) == 0u) {
     return;
   }
   beginPort(core, 1u);

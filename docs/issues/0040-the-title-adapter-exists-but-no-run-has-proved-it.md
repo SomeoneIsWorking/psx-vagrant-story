@@ -1,12 +1,14 @@
 ---
 id: 40
 title: The dynarec title adapter exists and is gate-covered, but the first run's evidence is bounded
-status: open
+status: resolved
 symptom: S015 was `missing` with one named cause: there was no Vagrant Story adapter to psxport's dynarec-only executor, so `run.sh` refused at a boundary and nothing in the title ran. The adapter is now written, compiled into a shipping executable, and covered by negative cases. Everything that depends on a presented frame stays `missing`.
 tags: s015,dynarec,adapter,launcher,telemetry,product-slot,run-evidence
 created: 2026-09-28
-updated: 2026-10-14
+updated: 2026-10-15
 ---
+
+**Resolved 2026-10-15.** The boot runs resident → TITLE → New Game → BATTLE prologue → warped free roam in one run (4:3 recordcheck `mismatched=0` over 8935 fields). Names below predate the restructure: `VagrantRuntime` is now `vagrant::Runtime`, `VagrantContext`/`contextOf` are `vagrant::Session`/`session`, `VagrantFrameDriver` is `vagrant::FrameDriver` (`game/frame/`), and the render-queue producers are deleted.
 
 ## What exists
 

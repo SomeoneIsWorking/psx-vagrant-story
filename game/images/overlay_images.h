@@ -51,6 +51,8 @@ public:
   OverlayLoadResult loadTransfer(OverlayKind kind, std::span<const std::uint8_t> sectors);
   // Admits bytes already delivered to the slot; the caller proves the transfer completed.
   OverlayLoadResult adoptTransfer(OverlayKind kind);
+  // The generation `kind` holds now, or nothing when another image owns its slot.
+  std::optional<psx::cpu::ImageIdentity> resident(OverlayKind kind) const;
 
 private:
   const OverlaySpec *specFor(OverlayKind kind) const;
@@ -63,6 +65,7 @@ private:
   Core &core_;
   std::array<OverlaySpec, 3> specs_;
   std::array<std::optional<psx::cpu::ImageIdentity>, 2> active_{};
+  std::array<std::optional<OverlayKind>, 2> activeKind_{};
 };
 
 } // namespace vagrant

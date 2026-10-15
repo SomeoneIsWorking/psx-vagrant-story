@@ -1,13 +1,15 @@
 ---
 id: 28
 title: Native frame loop lacks call-coherent resident-to-TITLE guest continuation
-status: investigating
+status: resolved
 symptom: Finite resident work loads authenticated TITLE, but the product has no call-coherent guest continuation from vs_main_exec through TITLE
 tags: boot,frame-loop,vsync,title,battle,native-ownership
 state_items: S003, S004, S006, S013
 created: 2026-08-27
-updated: 2026-09-12
+updated: 2026-10-15
 ---
+
+**Resolved 2026-10-15.** The boot runs resident → TITLE → New Game → BATTLE prologue → warped free roam in one run (4:3 recordcheck `mismatched=0` over 8935 fields). Names below predate the restructure: `VagrantRuntime` is now `vagrant::Runtime`, `VagrantContext`/`contextOf` are `vagrant::Session`/`session`, `VagrantFrameDriver` is `vagrant::FrameDriver` (`game/frame/`), and the render-queue producers are deleted.
 
 ## Root cause
 
@@ -23,8 +25,7 @@ injecting the intact guest handler from a host turn.
 `ResidentPhase` to `VagrantFrameDriver`. The finite phase can acquire all 271 native TITLE sectors and
 authenticate before publishing executable RAM; it then manually begins the splash after one host
 field. Its leaf dispatch services inherit r31 rather than reproducing each retail JAL's callsite PC
-and return address. The separate `enterTitle` synthetic contract checks the direct JAL and live image
-generations, but the finite phase does not call it. No product TITLE guest reach is established.
+and return address. No product TITLE guest reach is established.
 
 The authenticated resident at `SLUS_010.40` SHA-1 `fababcfd4325d42f350d95b3472874affeb0e48c`
 shows `vs_main_exec 0x80042C38` holding a 0x18-byte frame across `__main`, `_sysInit`, and the call to

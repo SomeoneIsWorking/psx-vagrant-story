@@ -5,7 +5,7 @@ status: resolved
 symptom: the watchdog stack ended in generated _waitTransferAvailable 0x8001355C while _isSpuTransfer stayed one
 tags: boot,spu,dma,callback,re-09
 created: 2026-08-21
-updated: 2026-10-04
+updated: 2026-10-15
 ---
 
 Sony libspu registers its completion callback on DMA channel 4 through the active libapi table at
@@ -25,7 +25,8 @@ with **no reader anywhere**, while `PlatformHlePlan::dmaCallbackTable` — the f
 declares it on — stayed zero, so `Hle::irqPoll` fell back to the per-Game native
 `DmaCallbackRegistry`, which has no entry for a title that registered none. On 2026-10-04 the boot
 again ended `budget-exhausted` at `0x80013570`, the `while (*(vu32*)0x800377F0 == 1)` load itself,
-inside `call0(vs_main__initSound)`. Declared in `game/runtime/vagrant_runtime.cpp`; the chain was
+inside `call0(vs_main__initSound)`. `StockDmaCallbacks` is bound at `0x80032128` in
+`game/runtime/runtime.cpp:Runtime::registerOverrides`; the chain was
 re-read from the SHA-bound bytes for that declaration (`DMACallback` computes `&DAT_80032128 + ch`,
 `SpuSetTransferCallback` writes the flag, and `_spuWriteComplete` is its only clear). Issue 0042
 section 8 has the run.

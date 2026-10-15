@@ -16,9 +16,8 @@ Measured from BATTLE.PRG's own bytes: the sole presenter `0x8007629C`, the dynam
 per-field `SetGeomOffset(160,112)`, the projection-distance word `0x8005E248` and its setter
 `0x8007CCF0`.
 
-`game/render/battle_frame.{h,cpp}` installs a retained-super completion fence on the measured
-presenter; the per-Core `BattleFrameProducer` flushes only after that presenter has translated its
-dynamic OT, and `VagrantFrameDriver` owns the one field commit.
+The retained BATTLE frame producer had no production caller and was deleted 2026-10-15; on Record the
+guest's GP0 output is replayed and `vagrant::FrameDriver` owns the one field commit.
 
 This is a render-ownership prerequisite, not a native world renderer and not a visual fix. A 240-second
 product run reached the completion override 9,073 times, so the fence is live. The guest captures at

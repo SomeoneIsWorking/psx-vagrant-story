@@ -30,12 +30,12 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 ### RE-02 — resident runtime mapping and entry
 - status: re-partial
 - deps: RE-01
-- evidence: `vagrant::VagrantRuntime::admitExecutable` refuses a structurally valid PS-X EXE
+- evidence: `vagrant::Runtime::admitExecutable` refuses a structurally valid PS-X EXE
   whose measured resident header differs, then delegates the accepted image to psxport's central
   `loadPsxExeImage` publication and image catalog. `vagrant_image_contract` proves the positive
   entry/range/catalog path and the changed-entry refusal with a synthetic PS-X shape.
-- where: `game/runtime/vagrant_runtime.{h,cpp}`, `game/boot/resident_image.h`,
-  `tests/test_vagrant_image_contract.cpp`,
+- where: `game/runtime/runtime.{h,cpp}`, `game/boot/resident_image.h`,
+  `tests/test_image_contract.cpp`,
   `CLAUDE.md`
 - gap: The measured resident header is admitted in a process that reads the file whole and refuses
   any other size. A run now enters the guest at `0x8001F544` and executes the resident leaf order on
@@ -62,7 +62,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   synthetic test refuses changed payload, changed padding, and foreign tail residency; a valid
   in-RAM TITLE-to-BATTLE replacement executes newly translated code with zero fallback.
 - where: `tools/extract_overlays.py`, `tests/test_overlay_inputs.py`,
-  `game/images/overlay_images.cpp`, `tests/test_vagrant_overlay_images.cpp`
+  `game/images/overlay_images.cpp`, `tests/test_overlay_images.cpp`
 - gap: The finite resident TITLE read now publishes only after all 271 native sectors complete and
   the acquired buffer passes image authentication.
   A future path using the natural CD queue must publish only at its successful Loaded transition;
@@ -86,28 +86,28 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - deps: RE-03
 - evidence: The authenticated BATTLE.PRG gives its presenter `0x8007629C`, resident parity
   `0x8005E210`, dynamic OT pointer array `0x80055C80`, and dynamic packet-pool pointer array
-  `0x8005E0C0`; TITLE's presenter is `0x80071A68`. The retained frame owner has one presentation
-  fence.
-- where: `game/sync/frame_loop.cpp`, `game/render/battle_frame.cpp`, `game/render/battle_projection_facts.h`
-- gap: Reconnect the frame owner at the dynarec/native boundary and reverify real output.
+  `0x8005E0C0`; TITLE's presenter is `0x80071A68`. On Record the guest's GP0 output is replayed and the
+  frame driver's one `presentation.commit` per field is the fence; 2026-10-15 a New Game run warped into
+  BATTLE free roam with 4:3 recordcheck `mismatched=0` over 8935 fields.
+- where: `game/frame/frame_driver.cpp`, `game/render/battle_projection_facts.h`
+- gap: none for presentation; native world production is RE-17.
 
 ### RE-06 — pad driver buffers and byte order
 - status: re-verified
 - deps: RE-01
 - evidence: The authenticated executable gives both buffers, the driver pointer table and stride,
   and the high-byte-first button normalization, shipped in `game/input/pad_facts.h` and used by
-  `game/input/pad_delivery.cpp`.
+  `game/input/pad_buffers.cpp` (`Runtime::deliverPad`); the 2026-10-15 warp run moved the player from the pad.
 - where: `game/input/`
-- gap: Runtime delivery awaits the dynarec adapter.
+- gap: none.
 
 ### RE-07 — retained semantic native owners
 - status: re-partial
 - deps: RE-02
-- evidence: Cohesive owners remain for frame timing, input delivery, CD/file boundaries, title
-  splash/movie/menu completion, battle presentation, heap initialization, save checks, and card
-  initialization. Their guest-address facts are independently measured.
-- where: `game/boot/`, `game/cd/`, `game/execution/`, `game/images/`, `game/input/`,
-  `game/render/`, `game/runtime/`, `game/save/`, `game/sync/`
+- evidence: Cohesive owners remain for frame timing, input delivery, CD/file boundaries, the title
+  splash, heap initialization, save checks, and card initialization. Their guest-address facts are independently measured.
+- where: `game/boot/`, `game/cd/`, `game/execution/`, `game/frame/`, `game/images/`, `game/input/`,
+  `game/render/`, `game/runtime/`, `game/save/`, `game/title/`
 - gap: The one image-scoped psxport native-override adapter EXISTS and is exercised
   (`vagrant::dynarec`, `vagrant::installResidentNativeOwners`, CTest `vagrant_dynarec_dispatch`:
   7/7 groups, every one a negative as well as a positive). The first leaf it made reachable is
@@ -125,9 +125,8 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 ### RE-08 — platform/HLE leaf inventory
 - status: re-partial
 - deps: RE-01
-- evidence: Typed fact headers retain exact VSync, CD, GPU-sync, pad, and resident addresses.
-- where: `game/sync/vsync_facts.h`, `game/cd/cd_facts.h`, `game/render/gpu_sync_facts.h`,
-  `game/boot/resident_facts.h`
+- evidence: Typed fact headers retain exact VSync, CD, pad, and resident addresses.
+- where: `game/frame/vsync_facts.h`, `game/cd/cd_facts.h`, `game/boot/resident_facts.h`
 - gap: Only demonstrated hardware/service boundaries may become native leaves; all ordinary game
   instructions remain dynarec-owned.
 
@@ -140,9 +139,9 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   `ch+16` plus bit 23; `SpuSetTransferCallback` 0x800134A0 sets `0x800377F0` and installs
   `_spuWriteComplete` 0x8001347C at `0x80030898`, the only clear of that flag; `_waitTransferAvailable`
   0x8001355C is `do {} while (DAT_800377f0 == 1)`; and 0x8001DE94 — the channel-4 slot's body — calls
-  `(*0x80030898)()`. The table is now DECLARED (`VagrantRuntime::platformHlePlan_`, `.dmaCallbackTable
-  = resident::kDmaCallbackTable`) and the boot crosses `_initSound` in a run.
-- where: `game/boot/resident_facts.h`, `game/runtime/vagrant_runtime.cpp`
+  `(*0x80030898)()`. The table is bound by psxport's `StockDmaCallbacks` at `resident::kDmaCallbackTable`
+  (`Runtime::registerOverrides`) and the boot crosses `_initSound` in a run.
+- where: `game/boot/resident_facts.h`, `game/runtime/runtime.cpp`
 - gap: none for the boot. The later DMA users (MDEC-out, GPU, OTC) are still unverified in a run.
 
 ### RE-10 — retail VBlank/VSync route
@@ -150,8 +149,8 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - deps: RE-01
 - evidence: The authenticated executable gives VSync `0x8001F6C4`, handler `0x8001FFEC`, counter
   `0x80032114`, callback table `0x800320F4`, and interrupt return PC `0x8001FAD0`, shipped in
-  `game/sync/vsync_facts.h`.
-- where: `game/sync/vsync_facts.h`
+  `game/frame/vsync_facts.h`; psxport's `StockVSync` serves `VSync` at those addresses.
+- where: `game/frame/vsync_facts.h`, `game/runtime/runtime.cpp`
 - gap: Historical direct handler dispatch is not retained; dynarec execution and native frame
   ownership must establish equivalent lifecycle invariants.
 
@@ -162,38 +161,34 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - deps: RE-03
 - evidence: `TITLE.PRG` is 554,568 bytes, SHA-1
   `f74a76e6215edebf607d0c2af56481050edb139a`, loads at `0x80068800`, and enters at `0x80071334`.
-  The exact resident has `jal 0x80071334` at `0x80042BD8` with a zero delay slot; the title entry
-  gate validates those words and both live image generations before psxport dynarec continuation.
+  The exact resident has `jal 0x80071334` at `0x80042BD8` with a zero delay slot.
 - where: `tools/extract_overlays.py`, `tests/test_overlay_inputs.py`,
-  `game/images/overlay_images.cpp`, `game/images/title_entry.cpp`,
-  `tests/test_vagrant_overlay_images.cpp`, `tests/test_vagrant_title_entry.cpp`
-- gap: The title-owned entry gate and synthetic direct-call execution are separate from a run that
-  has not yet reached TITLE. Wire the authenticated retail load and reached call through the product's
-  CD and dynarec route.
+  `game/images/overlay_images.cpp`, `tests/test_overlay_images.cpp`
+- gap: `ResidentPhase` enters TITLE itself rather than through the resident's direct JAL.
 
 ### RE-12 — TITLE publisher/developer splash producer
 - status: re-partial
 - deps: RE-11
 - evidence: The authenticated TITLE.PRG gives sprite leaf `0x8006A778`, packet `0x800DED28`, and
-  producer `0x8006F54C`; `game/render/title_startup.cpp` retains the native completed-field owner.
-- where: `game/render/title_startup.cpp`, `game/render/title_startup_recipe.{h,cpp}`
-- gap: Reverify presentation through the dynarec/native composition.
+  producer `0x8006F54C`. On Record the guest's own splash packets are replayed; no title producer.
+- where: `game/render/title_splash.cpp` (the phase), this entry (the addresses)
+- gap: none for presentation.
 
 ### RE-13 — TITLE 24-bit intro/MDEC producer
 - status: re-partial
 - deps: RE-12
-- evidence: The exact DCT callback and frame-completion facts are retained in
-  `game/render/title_movie.cpp`; that file owns only the native presentation boundary.
-- where: `game/render/title_movie.cpp`
-- gap: XA/STR progress and natural completion require dynarec runtime proof.
+- evidence: The intro movie is TITLE's own libpress path inside `TitleExecPhase`; its upload is guest
+  VRAM, which Record presents; no title producer.
+- where: `game/title/title_exec_phase.cpp`
+- gap: XA/STR natural completion (S005).
 
 ### RE-14 — TITLE menu completed-pass producer
 - status: re-partial
 - deps: RE-12
-- evidence: The menu-item completion boundary is retained in `game/render/title_menu.cpp`, which owns
-  its native producer.
-- where: `game/render/title_menu.cpp`
-- gap: Prove authored transition and menu output without bypassing lifecycle callbacks.
+- evidence: The menu is guest code in `TitleExecPhase`; a VSync suspension is its pass boundary.
+  Record presents its packets; no title producer.
+- where: `game/title/title_exec_phase.cpp`
+- gap: none for presentation.
 
 ### RE-15 — first BATTLE image identities and entries
 - status: re-partial
@@ -202,7 +197,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   extraction tools and the shipped BATTLE fact tables.
 - where: `tools/extract_overlays.py`, `game/render/battle_projection_facts.h`,
   `tests/test_overlay_inputs.py`, `game/images/overlay_images.cpp`,
-  `tests/test_vagrant_overlay_images.cpp`
+  `tests/test_overlay_images.cpp`
 - gap: BATTLE/INITBTL admission and TITLE→BATTLE generation replacement now have a focused
   synthetic Lightrec proof. Runtime CD-load integration, reached entries, and image-scoped native
   registration remain missing.
@@ -213,16 +208,16 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - evidence: The natural-return `0` and Start/right return `1` classification, and the one epilogue
   they converge at, are recorded in `docs/issues/0035`; historical traces reached the common TITLE menu
   path.
-- where: `game/render/title_menu.cpp`, `game/render/title_movie.cpp`, `docs/issues/0035`
+- where: `game/title/title_exec_phase.cpp`, `docs/issues/0035`
 - gap: Reverify the complete transition on the dynarec product.
 
 ### RE-17 — BATTLE completed-field ownership
 - status: re-partial
 - deps: RE-15
 - evidence: The presenter, viewport, projection, dynamic OT, and packet-pool ownership are measured
-  from the authenticated bytes and shipped in `game/render/battle_projection_facts.h`;
-  `game/render/battle_frame.cpp` retains the native boundary.
-- where: `game/render/battle_projection_facts.h`, `game/render/battle_frame.cpp`
+  from the authenticated bytes and shipped in `game/render/battle_projection_facts.h`. Record presents
+  the guest's field; no title producer.
+- where: `game/render/battle_projection_facts.h`
 - gap: Native world production and live parity remain unverified.
 
 ## Finite native-owner evidence retained for the hybrid
@@ -230,12 +225,11 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 ### RE-18 — finite resident/TITLE/BATTLE frame owner
 - status: re-partial
 - deps: RE-05, RE-10
-- evidence: `game/sync/frame_loop.cpp` owns explicit per-field service order and one presentation
-  commit; focused C++ tests retain its previously measured contract, and psxport's `TitleSession` runs
-  it as the product loop.
-- where: `game/sync/frame_loop.cpp`, `tests/test_vagrant_runtime.cpp`
-- gap: The boot reaches the product loop and presents one field; the field is the boot's first field
-  and the run then dies in field 1 (issue 0042).
+- evidence: `game/frame/frame_driver.cpp` owns explicit per-field service order and one presentation
+  commit, pinned by `tests/test_frame_driver.cpp`; psxport's `TitleSession` runs it as the product loop.
+  2026-10-15: boot to TITLE, New Game, BATTLE prologue and warped free roam in one run.
+- where: `game/frame/frame_driver.cpp`, `tests/test_frame_driver.cpp`, `tests/test_boot_route.cpp`
+- gap: none for the boot route.
 
 ### RE-19 — finite system initialization and TITLE loading phase
 - status: re-partial
@@ -249,8 +243,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - gap: The exact `vs_main_exec` and `vs_main_execTitle` calls still need title-owned continuation:
   their live outer frames and saved registers, each leaf's measured callsite PC/return address, and
   the direct TITLE JAL at `0x80042BD8` with RA `0x80042BE0`. `ResidentPhase` calls bounded leaves
-  using the inherited r31 and manually enters the splash after loading TITLE; the isolated
-  `enterTitle` guest-JAL test does not compose with this finite phase. Prove that call/return chain
+  using the inherited r31 and manually enters the splash after loading TITLE. Prove that call/return chain
   and a finite field yield through the shipping adapter before claiming TITLE guest reach.
 
 ### RE-20 — native CD command and finite menu-sound loads
@@ -259,12 +252,12 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - evidence: Exact CD facts and native file/command owners remain under `game/cd/`. The measured
   TITLE request is `0x87800` bytes (271 complete sectors), including the final 440 bytes beyond the
   authenticated ISO file length. `readNativeSectors` acquires the complete extent before any guest
-  RAM write. `VagrantRuntime::createContext` gives each Core an `OverlayImages` owner;
+  RAM write. `vagrant::Session` gives each Core an `OverlayImages` owner;
   `ResidentPhase` calls `readAndLoadTitle` at that acquisition boundary before its TITLE field wait.
   `OverlayImages::loadTransfer` authenticates the buffer before copying RAM and activating identity.
   The shipping-path synthetic test rejects a short final sector even with matching RAM and preserves
   a prior identity and RAM on both short and complete altered replacements.
-- where: `game/cd/`, `game/images/title_transfer.cpp`, `tests/test_vagrant_title_transfer.cpp`
+- where: `game/cd/`, `game/images/title_transfer.cpp`, `tests/test_title_transfer.cpp`
 - gap: Validate override ABI, failure paths, and ordinary dynarec comparison on the real title. The
   resident-to-TITLE guest continuation remains uncomposed, and the CD wait that ends the boot is a
   declared-callback gap (issue 0042).
@@ -272,9 +265,11 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 ### RE-21 — TITLE GPU timeout arm
 - status: re-partial
 - deps: RE-08, RE-19
-- evidence: `game/render/gpu_sync_facts.h` retains the measured timeout arm/deadline/flag facts.
-- where: `game/render/gpu_sync_facts.h`
-- gap: Runtime behavior awaits the dynarec adapter.
+- evidence: libgpu's command-timeout leaf `0x8002AB84` (called by queue owner `0x8002A3E8` from
+  `ClearImage` `0x800287D4`) reads `VSync(-1)` and stores +240 at deadline `0x80033580`; flag `0x80033584`.
+  It runs as guest code against `StockVSync`.
+- where: this entry
+- gap: none; the boot crosses `ClearImage` in a run.
 
 ### RE-22 — resident file loads and TITLE splash phase
 - status: re-partial
@@ -329,3 +324,17 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - gap: the sky-dome inline reject near `0x8009820C`, the literal-320 gradient in `0x8008EC48`, rain `0x8008F440`,
   particles, HUD and the `0x800BB874` scanline effect still use retail 4:3 limits; whether any of their results
   feeds gameplay is unread. `0x80098160` (near-clip consumer) is named but not decompiled.
+
+### RE-25 — Teleportation location transition (the `warp` route)
+- status: re-partial
+- deps: RE-15, RE-18
+- evidence: Read from rood-reverse and checked by running it. MENU0.PRG `_savePointData` (35 words,
+  `src/MENU/MENU0.PRG/84.c`) packs a save point's room in bits 0-8, x in 16-20 and z in 24-28; the Teleportation
+  menu (`15AC.c`) adds 1 and repacks them as location, x and z. BATTLE's ability executor `func_800735F8` case 10
+  calls the location transition `func_8007C694(location, x, z, effect 0, speed 8)`, then `func_8006F5CC`, which
+  sets the mode word `0x800F196C` to 1 (free roam; 3 is an event script). `0x800F1A48` is the transition step, 0
+  when none is in flight. `vs_main_locationZoneMapIds` `0x8004F0CC` holds a zone and a map byte per location.
+  2026-10-15: from the New Game prologue (mode 3), save points 0, 2, 3, 6 and 12 load and leave mode 1.
+- where: `game/frame/location_warp.{h,cpp}`, `tests/test_location_warp.cpp`, `tests/test_frame_driver.cpp`
+- gap: save point 1 faults in `vs_battle_processObjectDataQueue` (issue 0052); the warp skips
+  `func_800A1108`, `func_8006F4B0` and state flag `0xB7`, which the spell sets before the transition.

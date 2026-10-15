@@ -5,7 +5,7 @@ status: resolved
 symptom: with the TITLE save-file check reached, the next leaf exited budget-exhausted at 0x8006FCEC and the process aborted naming "guest call0"
 tags: resident,title,render,re-23
 created: 2026-10-04
-updated: 2026-10-04
+updated: 2026-10-15
 ---
 
 Owning `_initMemcard` released `_saveFileExists`, and the very next leaf it calls did not fit a host
@@ -28,8 +28,8 @@ The fix reaches `psx::cpu::callGuestToReturnResuming` through the one module all
 dispatch form: `vagrant::dynarec::callGuestResumingToReturn(core, entry, turnCap)`, with the return
 address read from `r[31]` before the call because the guest body overwrites it as it calls deeper.
 `ResidentCallServices::callResuming` is the owner-facing seam and
-`title_splash::kCopyTitleBgDataTurns` the stated cap (the measurement plus one field), so
-`tests/test_vagrant_runtime.cpp` fails if this leaf silently returns to the single-turn form.
+`title_splash::kCopyTitleBgDataTurns` the stated cap (the measurement plus one field). Neither name exists now and
+no unit test pins the cap.
 ## Update 2026-10-09
 
 `callResuming` and `kCopyTitleBgDataTurns` no longer exist; TITLE's guest code, including this leaf, now runs as a suspended guest call that spans fields (`TitleExecPhase`).

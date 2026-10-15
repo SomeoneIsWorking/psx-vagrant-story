@@ -1,8 +1,2 @@
 # re-harness cpp_policy sites this repository has not yet moved to an owner. The list only shrinks:
 # a site that no longer occurs fails the gate until its line is deleted.
-
-# Functions in the global namespace.
-tests/test_vagrant_overlay_images.cpp:global-namespace function:noModuleLoadReachesTheResidentText
-
-# Function-local statics.
-game/boot/resident_phase.cpp:block-scope static:kLoads

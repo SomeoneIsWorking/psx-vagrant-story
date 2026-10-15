@@ -33,17 +33,16 @@ Against BATTLE.PRG SHA-1 `d53aaccc3b3a2fc057d05e0dcea92f7182bc72a9`:
   no BATTLE.PRG instruction materialises 256 into it, so the resting value is not a byte-derived fact
   of these modules.
 
-The retained `BattleFrameProducer` owns only the completed-field fence. Its historical native route
-called the original `0x8007629C` presenter, then flushed the guest batch for
-`VagrantFrameDriver`'s single commit. The current dynarec product adapter has not connected this
-owner, and it does not recreate scene geometry semantically.
+No title owner sits between BATTLE's presenter `0x8007629C` and the screen: on Record the guest's GP0 output is
+replayed, and `vagrant::FrameDriver`'s one `presentation.commit` per field is the fence. Nothing recreates scene
+geometry semantically.
 
 ## Current adapter status
 
 The framework has generic widescreen and `Fps60` machinery; Vagrant satisfies the widescreen inputs on the record
 canvas and none of the `Fps60` ones:
 
-- `VagrantRuntime` declares `RenderPath::Record` and a `GuestWidescreenProjection`, and widens the CANVAS: psxport's
+- `vagrant::Runtime` declares `RenderPath::Record` and a `GuestWidescreenProjection`, and widens the CANVAS: psxport's
   record canvas adds `presentationHorizontalMargin` columns on each side of the 320 x 224 buffer while the guest keeps
   its retail centre (160) and clip. `vagrant::BattleProjectionOwner` (`game/render/battle_projection.{h,cpp}`) only
   observes the four measured resident SDK leaves the viewport is stated through. The 256 in the display `screen`
@@ -79,7 +78,7 @@ Against BATTLE.PRG SHA-1 `d53aaccc3b3a2fc057d05e0dcea92f7182bc72a9`:
   widening that "just nudged H" would have cleared 272 and hit 768. Widening the canvas instead
   leaves the word alone. Retail's resting value of 256 is not derivable from the provisioned modules
   and is not claimed here.
-- `VagrantRuntime` currently declares direct rendering. Vagrant supplies no semantic BATTLE world
+- `vagrant::Runtime` declares Record and `interpolates()` stays false. Vagrant supplies no semantic BATTLE world
   producer or interpolation snapshots, so an `fps60=1` checkout preference is refused rather than
   evidence of interpolated fields. The frame rate behind that scope question is still unmeasured.
   The `VSync` argument census is complete for BATTLE.PRG and finds its two call sites are both

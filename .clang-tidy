@@ -6,9 +6,10 @@ Checks: >-
   performance-*,
   readability-braces-around-statements
 WarningsAsErrors: '*'
+HeaderFilterRegex: '(^|/)(game|titles|tests)/'
+ExcludeHeaderFilterRegex: '(^|/)psxport/'
 SystemHeaders: false
-FormatStyle: file
 CheckOptions:
-  - key: readability-braces-around-statements.ShortStatementLines
-    value: '0'
+  readability-braces-around-statements.ShortStatementLines: '0'
+FormatStyle: file
 ...

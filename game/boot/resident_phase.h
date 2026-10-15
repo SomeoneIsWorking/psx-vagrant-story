@@ -8,7 +8,7 @@ class Core;
 
 namespace vagrant {
 
-enum class ResidentPhaseState {
+enum class ResidentPhaseState : std::uint8_t {
   Cold,
   InitCardFieldWait,
   LoadingScreenFieldWait,

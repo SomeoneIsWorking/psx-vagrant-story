@@ -8,7 +8,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stderr, redirect_stdout
+from collections.abc import Iterator
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 from unittest import mock
@@ -24,6 +25,22 @@ from tools.quality import structure
 class Completed:
     def __init__(self, returncode: int = 0) -> None:
         self.returncode = returncode
+
+
+@contextmanager
+def provisioned_inputs() -> Iterator[None]:
+    """Stands in for what the faked extraction tools would have written, so no disc is needed."""
+    scratch = ROOT / "scratch" / "tests"
+    scratch.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=scratch) as inputs:
+        resident = Path(inputs) / "SLUS_010.40"
+        resident.write_bytes(b"")
+        overlays = Path(inputs) / "overlays"
+        overlays.mkdir()
+        with mock.patch.object(boundary, "RESIDENT_IMAGE", resident), mock.patch.object(
+            boundary, "OVERLAY_DIRECTORY", overlays
+        ):
+            yield
 
 
 class LauncherRouteTest(unittest.TestCase):
@@ -44,6 +61,7 @@ class LauncherRouteTest(unittest.TestCase):
             return Completed(0)
 
         with (
+            provisioned_inputs(),
             mock.patch.object(subprocess, "run", side_effect=fake_run),
             redirect_stdout(StringIO()),
         ):
@@ -187,7 +205,8 @@ class LauncherRefusalTest(unittest.TestCase):
             )
 
     def test_present_measured_inputs_report_nothing_missing(self) -> None:
-        self.assertEqual(boundary.missing_inputs(), [], "the provisioned measured inputs are absent")
+        with provisioned_inputs():
+            self.assertEqual(boundary.missing_inputs(), [], "present measured inputs were reported missing")
 
     def test_refuses_when_provisioning_left_an_input_absent(self) -> None:
         with mock.patch.object(boundary.shutil, "which", side_effect=lambda name: f"/usr/bin/{name}"), mock.patch.object(
@@ -218,6 +237,7 @@ class EntryContractTest(unittest.TestCase):
             return Completed(0)
 
         with (
+            provisioned_inputs(),
             mock.patch.object(boundary.shutil, "which", side_effect=lambda name: f"/usr/bin/{name}"),
             mock.patch.object(boundary, "framework_checkout", return_value=ROOT / "external" / "psxport"),
             mock.patch.object(subprocess, "run", side_effect=fake_run),

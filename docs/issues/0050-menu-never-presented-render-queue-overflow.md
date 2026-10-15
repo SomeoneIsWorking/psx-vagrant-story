@@ -5,15 +5,16 @@ status: resolved
 symptom: black menu, then abort
 tags: S004,S006,S013,title,cd
 created: 2026-10-09
-updated: 2026-10-09
+updated: 2026-10-15
 ---
 
 `game/title/title_exec_phase.cpp:TitleExecPhase`: the menu producer presented on exhausted turns and on every pass, never fenced at the guest's VSync.
 
 ## Fix
 
-`TitleMenu::frameCompleted` is called only on a VSync suspension.
+The frame driver's one `presentation.commit` per field is the fence; on Record no title producer enqueues, so the
+render queue stays empty.
 
 ## Test
 
-menu-fence test in `tests/test_vagrant_runtime.cpp`.
+Field-order test in `tests/test_frame_driver.cpp`.

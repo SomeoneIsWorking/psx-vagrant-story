@@ -1,12 +1,14 @@
 ---
 id: 41
 title: The title ran for the first time — four sequential real defects stood between the adapter and the first host field
-status: open
+status: resolved
 symptom: S015 was `missing` its whole life because nothing had ever run. This was the first authenticated execution of SLUS_010.40 through psxport's dynarec. It did not boot, and the reason was not one bug but four, in sequence, each of which a test could pass around. All four are now fixed at root cause (the fourth by issue 0042).
 tags: s015,dynarec,run-evidence,product-slot,fallback,platform-hle,projection
 created: 2026-09-28
-updated: 2026-09-28
+updated: 2026-10-15
 ---
+
+**Resolved 2026-10-15.** The boot runs resident → TITLE → New Game → BATTLE prologue → warped free roam in one run (4:3 recordcheck `mismatched=0` over 8935 fields). Names below predate the restructure: `VagrantRuntime` is now `vagrant::Runtime`, `VagrantContext`/`contextOf` are `vagrant::Session`/`session`, `VagrantFrameDriver` is `vagrant::FrameDriver` (`game/frame/`), and the render-queue producers are deleted.
 
 ## What ran, and how far — the guest's own words
 

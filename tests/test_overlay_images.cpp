@@ -5,7 +5,8 @@
 #include "images/overlay_images.h"
 #include "lightrec_executor.h"
 #include "lucent/content.h"
-#include "runtime/vagrant_runtime.h"
+#include "runtime/runtime.h"
+#include "typed_config.h"
 
 #include <algorithm>
 #include <array>
@@ -52,9 +53,8 @@ std::vector<std::uint8_t> readFile(const std::filesystem::path &path) {
 }
 
 bool retailInputs(const std::filesystem::path &directory, bool discTransfer) {
-  vagrant::VagrantRuntime runtime;
-  psxport_install_game(runtime);
-  auto game = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
   game->disc.env_key = vagrant::kTitleIdentity.discEnvVar;
   vagrant::OverlayImages overlays(game->core);
   for (const auto [kind, stem, isoPath, entry, guestBase] : {
@@ -131,9 +131,8 @@ bool syntheticReplacement() {
       {OverlayKind::Battle, "BATTLE.PRG", 0x80068800u, battle.size(), sha256(battle)},
       {OverlayKind::InitBattle, "INITBTL.PRG", 0x800F9800u, init.size(), sha256(init)},
   }};
-  vagrant::VagrantRuntime runtime;
-  psxport_install_game(runtime);
-  auto game = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
   auto &core = game->core;
   vagrant::OverlayImages overlays(core, specs);
   core.pc = 0x8001F544u;
@@ -165,7 +164,9 @@ bool syntheticReplacement() {
       !require(!core.currentImageIdentity(0x8006880Cu), "sector padding became an executable image") ||
       !require(core.pc == 0x8001F544u, "overlay load changed the resident PC") ||
       !require(core.currentImageIdentity(0x80068800u) == first.identity,
-               "TITLE slot did not resolve to its first image generation")) {
+               "TITLE slot did not resolve to its first image generation") ||
+      !require(overlays.resident(OverlayKind::Title) == first.identity, "resident TITLE was not reported") ||
+      !require(!overlays.resident(OverlayKind::Battle), "TITLE in the shared slot was reported as BATTLE")) {
     return false;
   }
   const auto initialInvalidations = core.lightrecExecutor().counters().invalidations;
@@ -193,6 +194,8 @@ bool syntheticReplacement() {
       !require(second.identity != first.identity, "reused overlay image generation") ||
       !require(core.currentImageIdentity(0x80068800u) == second.identity, "BATTLE did not replace TITLE slot") ||
       !require(core.imageCatalog().activeCount() == 1u, "retired TITLE image remained active") ||
+      !require(overlays.resident(OverlayKind::Battle) == second.identity, "resident BATTLE was not reported") ||
+      !require(!overlays.resident(OverlayKind::Title), "replaced TITLE was still reported resident") ||
       !require(core.lightrecExecutor().counters().invalidations > initialInvalidations,
                "BATTLE replacement did not invalidate translated code") ||
       !require(core.lightrecExecutor()
@@ -232,9 +235,8 @@ bool syntheticAdoption() {
       {OverlayKind::Battle, "BATTLE.PRG", 0x80068800u, battle.size(), sha256(battle)},
       {OverlayKind::InitBattle, "INITBTL.PRG", 0x800F9800u, 4u, sha256(std::array<std::uint8_t, 4>{})},
   }};
-  vagrant::VagrantRuntime runtime;
-  psxport_install_game(runtime);
-  auto game = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
   auto &core = game->core;
   vagrant::OverlayImages overlays(core, specs);
   core.r[31] = 0x8001F548u;
@@ -295,8 +297,6 @@ bool syntheticAdoption() {
                  "resident overlay execution entered the interpreter");
 }
 
-} // namespace
-
 // No overlay write can reach the resident text (ends 0x80062000): overlay ranges start at 0x80068800,
 // so a stale translated block cannot explain the `CD_sync` wait at 0x80020F28. Recomputed from the spec table.
 bool noModuleLoadReachesTheResidentText() {
@@ -309,10 +309,8 @@ bool noModuleLoadReachesTheResidentText() {
   constexpr std::uint32_t kCdStateWriterPc = 0x80020D38u; // the only writer of 0x800324D8
   constexpr std::uint32_t kCdStateWord = 0x800324D8u;
 
-  // The Core needs this title's runtime installed before construction.
-  vagrant::VagrantRuntime runtime;
-  psxport_install_game(runtime);
-  auto owned = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto owned = std::make_unique<Game>(runtime, psx::config::Config{});
   const vagrant::OverlayImages overlays(owned->core);
 
   // Read the production spec table, not a copy.
@@ -365,6 +363,8 @@ bool noModuleLoadReachesTheResidentText() {
                  "a module load in this title can reach the resident text, so an interior-word "
                  "invalidation could leave a stale block in the CD wait and issue 0050 applies here");
 }
+
+} // namespace
 
 int main(int argc, char **argv) {
   if (!syntheticReplacement() || !syntheticAdoption()) {

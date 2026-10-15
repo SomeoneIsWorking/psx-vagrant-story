@@ -1,10 +1,14 @@
+#include "boot/resident_image.h"
 #include "core.h"
-#include "runtime/vagrant_runtime.h"
+#include "game.h"
+#include "runtime/runtime.h"
+#include "typed_config.h"
 
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstdio>
+#include <memory>
 #include <span>
 #include <vector>
 
@@ -40,12 +44,9 @@ bool require(bool condition, const char *message) {
 } // namespace
 
 int main() {
-  vagrant::VagrantRuntime runtime;
-  psxport_install_game(runtime);
-  Core core;
-  if (!require(core.gameCtx != nullptr, "VagrantRuntime did not create its per-Core title context")) {
-    return 1;
-  }
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
+  Core &core = game->core;
   const auto image = residentFixture();
   const auto loaded = runtime.admitExecutable(core, image);
   if (!require(static_cast<bool>(loaded), "measured resident image was refused") ||

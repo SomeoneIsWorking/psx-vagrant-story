@@ -12,18 +12,15 @@ executes the authenticated resident image and reached `.PRG` overlays through ps
 Lightrec executor. There is no interpreter fallback, no engine selector, and no generated guest
 corpus; `tools/verify.py` inspects the shipped binary's symbols to keep that true.
 
-**The title has not been run against the real disc, so it does not yet play.** The adapter and its
-gates are covered; the run is not, because the workspace's single product slot was held by another
-agent (`docs/issues/0040`, which also states what a run would settle).
-"the adapter exists" and "the title runs" are different claims and only the first is established.
+**The title boots from the real disc into BATTLE, but it is not yet playable end to end.** A New Game runs the
+resident boot, TITLE (splashes, intro movie, menu) and the BATTLE prologue under psxport's dynarec; the `warp
+<save point>` control command loads a map into free roam through the game's own location transition. Later
+overlays, saves and progression are unverified; save point 1 faults (`docs/issues/0052`).
 
-Substantial title-owned work remains in the tree: authenticated resident and `.PRG` provisioning,
-finite resident/TITLE phases, CD and memory-card ownership, pad delivery, native heap behavior, TITLE
-presentation producers, a BATTLE field fence, and the measured retail facts each of them rests on. The
-old runtime's successful splash/menu/BATTLE observations are historical evidence from the RETIRED
-static-recomp product, not claims about this one. See `docs/project-state.md` for the capability
-inventory, `docs/issues/` for the open defects, and `docs/re-frontier.md` for the ordered binary
-evidence chain.
+Title-owned work: authenticated resident and `.PRG` provisioning, finite resident/TITLE phases, CD and
+memory-card ownership, pad delivery, native heap behaviour, the BATTLE culls that admit 16:9 margins, and the
+measured retail facts each rests on. See `docs/project-state.md` for the capability inventory, `docs/issues/`
+for open defects, and `docs/re-frontier.md` for the ordered binary evidence chain.
 
 ## Intended product
 

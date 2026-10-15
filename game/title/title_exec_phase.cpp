@@ -1,7 +1,6 @@
 #include "title/title_exec_phase.h"
 
 #include "core.h"
-#include "runtime/vagrant_context.h"
 #include "title/title_exec_facts.h"
 
 #include <cstdlib>
@@ -44,10 +43,6 @@ void TitleExecPhase::advanceAfterField(Core &core) {
   const dynarec::ContinuationStep step = phase_.advance();
   if (step.kind == dynarec::ContinuationStep::Kind::Suspended) {
     lucent::debug("vagrant-title-exec", "suspended at 0x{:08X}", step.pc);
-    // The guest's VSync ends the pass it drew since the last one; the menu's DrawPrim queue is flushed there.
-    if (step.frameBoundary) {
-      contextOf(core).titleMenu.frameCompleted();
-    }
     return;
   }
   selectedOption_ = step.value;

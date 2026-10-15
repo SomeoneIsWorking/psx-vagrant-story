@@ -3,12 +3,12 @@
 #include "core.h"
 #include "game.h"
 #include "game_runtime.h"
-#include "hw_bind.h"
 #include "native_dispatch.h"
 #include "proj_params.h"
 #include "render/battle_projection.h"
 #include "render/battle_projection_facts.h"
-#include "runtime/vagrant_runtime.h"
+#include "runtime/runtime.h"
+#include "typed_config.h"
 
 #include <sys/wait.h>
 #include <unistd.h>
@@ -63,16 +63,15 @@ constexpr std::int32_t kRetailScreenDistance = 256;
 constexpr std::uint32_t kReturnNow = 0x03E00008u;
 constexpr std::uint32_t kDelaySlot = 0x00000000u;
 
-// Heap-allocated: a `Game` by value overflows the stack, and `gte_bind` publishes `&core.game->gte`.
+// Heap-allocated: a `Game` by value overflows the stack.
 struct Fixture {
+  vagrant::Runtime runtime;
   std::unique_ptr<Game> owned;
   Core &core;
   psx::cpu::ImageIdentity resident{};
 
-  explicit Fixture(bool activateImage = true) : owned(std::make_unique<Game>()), core(owned->core) {
-    // Bind the GTE before powering: `GTE_Power` writes through the bound register file.
-    gte_bind(&core);
-    gte_init();
+  explicit Fixture(bool activateImage = true)
+      : owned(std::make_unique<Game>(runtime, psx::config::Config{})), core(owned->core) {
     if (activateImage) {
       resident = core.imageCatalog().activate(
           "synthetic SLUS_010.40 resident fixture", {kResidentLow & 0x1FFFFFFFu, (kResidentHigh & 0x1FFFFFFFu)}, 1u);
@@ -167,12 +166,9 @@ void refusesNonGuestRamArea() {
 } // namespace
 
 int main() {
-  // Install the title runtime so each Core gets its per-Core context; no image is needed.
-  vagrant::VagrantRuntime runtime;
-  psxport_install_game(runtime);
-
   // 0. The canvas widens; the title declares the aspect and moves no projection word.
-  expect(runtime.guestWidescreenProjection() != nullptr, "VagrantRuntime must declare its guest widescreen policy");
+  const vagrant::Runtime runtime;
+  expect(runtime.guestWidescreenProjection() != nullptr, "the runtime must declare its guest widescreen policy");
 
   // 1. The measured publication.
   const vagrant::BattleProjectionPublication publication = measure();
@@ -243,9 +239,9 @@ int main() {
            "the GTE fixture must install the same four leaves");
     // The centre leaf alone, apart from the screen distance leaf sharing `$a0`.
     runCentre(gte);
-    expect(gte_read_ctrl(facts::kGteControlOfx) == (static_cast<std::uint32_t>(kRetailCentreX) << 16),
+    expect(gte.core.gte().readControl(facts::kGteControlOfx) == (static_cast<std::uint32_t>(kRetailCentreX) << 16),
            "SetGeomOffset must have moved CR24 itself, not merely recorded an argument");
-    expect(gte_read_ctrl(facts::kGteControlOfy) == (static_cast<std::uint32_t>(kPresenterCentreY) << 16),
+    expect(gte.core.gte().readControl(facts::kGteControlOfy) == (static_cast<std::uint32_t>(kPresenterCentreY) << 16),
            "SetGeomOffset must have moved CR25 itself");
     expect(gte.core.rsub.projParams.geomOfx() == static_cast<float>(kRetailCentreX) &&
                gte.core.rsub.projParams.geomOfy() == static_cast<float>(kPresenterCentreY),
@@ -256,7 +252,7 @@ int main() {
                gte.core.r[5] == (static_cast<std::uint32_t>(kPresenterCentreY) << 16),
            "SetGeomOffset must leave its arguments shifted into place, as its own body does");
     runScreenDistance(gte);
-    expect(gte_read_ctrl(facts::kGteControlH) == static_cast<std::uint32_t>(kRetailScreenDistance),
+    expect(gte.core.gte().readControl(facts::kGteControlH) == static_cast<std::uint32_t>(kRetailScreenDistance),
            "SetGeomScreen must have moved CR26 itself");
     expect(gte.core.rsub.projParams.geomH() == static_cast<float>(kRetailScreenDistance),
            "SetGeomScreen must move the port's own record of H with the coprocessor");

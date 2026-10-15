@@ -5,7 +5,7 @@ status: resolved
 symptom: the run presented both TITLE splash halves and then parked for 2000+ fields inside _saveFileExists
 tags: save,memcard,cd,title,re-23
 created: 2026-10-04
-updated: 2026-10-04
+updated: 2026-10-15
 ---
 
 Issue 34 recorded the right fix for TITLE's `_initMemcard` — native-own it as finite staged reads of
@@ -24,9 +24,9 @@ establishes.
 Note the recorded focus described this as "a card-insertion event". It is not: the card-event half is
 `_memcardEventHandler`, which is reached only AFTER `_initMemcard` returns 1, and it was never entered.
 
-The fix is one line per call site: `TitleSaveCheck` now drives `contextOf(core).titleMemcardInit`,
+The fix is one line per call site: `TitleSaveCheck` now drives `session(core).titleMemcardInit`,
 keeping retail's order (`_initMemcard(1)`, then one `_initMemcard(0)` poll per host field, then the two
-card ports). `tests/test_vagrant_runtime.cpp` asserts the guest `_initMemcard` and the three CD-queue
+card ports). `tests/test_boot_route.cpp` asserts the guest `_initMemcard` and the three CD-queue
 leaves it would have needed are never dispatched, and that both extents were read natively.
 
 **Dead ends:** satisfying the poll by writing `4` into the guest's slot state word (that is writing the

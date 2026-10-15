@@ -8,7 +8,7 @@ class Core;
 
 namespace vagrant {
 
-enum class TitleSplashState {
+enum class TitleSplashState : std::uint8_t {
   Cold,
   InitialFieldWait,
   PublisherFieldWait,

@@ -15,15 +15,15 @@ BUILD = ROOT / "build" / "verify"
 NATIVE_TESTS = frozenset({
     "vagrant_battle_cull",
     "vagrant_battle_projection",
+    "vagrant_boot_route",
     "vagrant_ds_control_contract",
     "vagrant_dynarec_dispatch",
+    "vagrant_frame_driver",
     "vagrant_game_heap",
     "vagrant_image_contract",
-    "vagrant_native_runtime",
+    "vagrant_location_warp",
     "vagrant_overlay_images",
-    "vagrant_title_entry",
     "vagrant_title_transfer",
-    "vagrant_title_startup_recipe",
 })
 # The shipping product, built so a compile failure on a player's machine shows up here.
 PRODUCT_TARGET = "vagrant_port"

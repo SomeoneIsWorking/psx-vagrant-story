@@ -4,6 +4,8 @@
 #include "game.h"
 #include "images/title_transfer.h"
 #include "lucent/content.h"
+#include "runtime/runtime.h"
+#include "typed_config.h"
 
 #include <algorithm>
 #include <array>
@@ -45,7 +47,8 @@ bool require(bool condition, const char *message) {
 } // namespace
 
 int main() {
-  auto game = std::make_unique<Game>();
+  vagrant::Runtime runtime;
+  auto game = std::make_unique<Game>(runtime, psx::config::Config{});
   auto &core = game->core;
   std::vector<std::uint8_t> sectors(vagrant::resident::kTitlePrgSize, 0u);
   for (std::size_t offset = 0; offset < kRetailTitleImageBytes; ++offset) {

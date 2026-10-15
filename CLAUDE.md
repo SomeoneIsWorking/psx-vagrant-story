@@ -19,10 +19,11 @@ over the authenticated game bytes. Read `external/psxport/CLAUDE.md` for framewo
   override identity. Overlay loads, guest writes, DMA, savestate restore, and override changes
   invalidate affected execution decisions. psxport owns Lightrec integration, CPU/device sync,
   executable memory, and cache mechanics; this repository owns image identity and title behavior.
-- `VagrantRuntime` supplies the measured `GuestProgramImage`, the measured VSync `PlatformHlePlan`,
-  the per-Core `VagrantFrameDriver`, and the resident publication boundary. It must not absorb their
-  implementations. The framework main owns the process: `vagrant::createCatalog` hands this title to
-  `ProductHost`, and `TitleSession` knows the ORDER the machine becomes a product.
+- `vagrant::Runtime` admits the resident image, enters `ResidentPhase` from `startProgram`, binds psxport's
+  stock VSync/libcd/DMA classes at this executable's addresses, and creates the per-Core `vagrant::Session`
+  and `vagrant::FrameDriver`. It must not absorb their implementations. The framework main owns the
+  process: `vagrant::createCatalog` hands this title to `ProductHost`, and `TitleSession` knows the ORDER
+  the machine becomes a product.
 - `vagrant::dynarec` (`game/execution/dynarec_dispatch.{h,cpp}`) is the ONLY module here that resolves an
   image identity, spells an `ExecutionBudget`, or chooses a dispatch form. Add nothing that does any
   of those three elsewhere. `vagrant::installResidentNativeOwners` decides WHICH leaves the title owns
@@ -64,6 +65,10 @@ shipping. The first migration discriminator is 1,000/1,000 host-owned TITLE fiel
 image with nonzero Lightrec execution, a reached native CD override, reached resident and TITLE
 overrides, one scoped `superCall`, image-generation invalidation and an unchanged-generation
 negative, zero guest-VSync violations, and independent CPU/device-state comparison.
+
+To reach a map, start a New Game (BATTLE is resident from the prologue) and send `warp <save point 0..34>` on
+the control channel; `vagrant::LocationWarp` takes it through BATTLE's own location transition at a field
+boundary. Save point 1 currently faults (issue 0052).
 
 Disc resolution is explicit argument, `PSXPORT_VAGRANT_DISC`, `.env`, then an unambiguous
 repository-root CHD. Validate the resident executable and every loaded overlay. `external/psxport`

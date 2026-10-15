@@ -10,9 +10,7 @@ namespace vagrant::cd {
 inline constexpr std::uint32_t kDsControl = 0x80025B7Cu;
 inline constexpr std::uint32_t kDsControlB = 0x80025BE4u;
 inline constexpr std::uint32_t kCdCommand = 0x80021470u;
-inline constexpr std::uint32_t kCdCommandWindowEnd = kCdCommand + 4u;
 inline constexpr std::uint32_t kCdSync = 0x80020F28u;
-inline constexpr std::uint32_t kCdSyncWindowEnd = kCdSync + 4u;
 
 // _diskReset leaf and state addresses.
 inline constexpr std::uint32_t kDsFlush = 0x800243A0u;

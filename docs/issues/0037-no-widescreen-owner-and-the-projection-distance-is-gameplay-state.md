@@ -11,8 +11,8 @@ updated: 2026-10-10
 ## What was built
 
 `vagrant::BattleProjectionOwner` (`game/render/battle_projection.{h,cpp}`), registered through the
-per-Core `psx::cpu::NativeDispatcher` from `VagrantRuntime::admitExecutable` — the only boundary at
-which the resident image exists. `VagrantContext` holds the owner per Core.
+per-Core `psx::cpu::NativeDispatcher` from `vagrant::Runtime::admitExecutable` — the only boundary at
+which the resident image exists. `vagrant::Session` holds the owner per Core.
 
 It owns the four **resident** SDK leaves, not the overlay call site: BATTLE's presenter
 `0x8007629C` re-states a literal `SetGeomOffset(160, 112)` every field, so an owner on the overlay's
@@ -32,7 +32,7 @@ retail centre and draw width, so nothing derives a wide projection.
 
 ## How the widening works now
 
-`VagrantRuntime` declares `RenderPath::Record` and a `GuestWidescreenProjection`; psxport's record canvas holds
+`vagrant::Runtime` declares `RenderPath::Record` and a `GuestWidescreenProjection`; psxport's record canvas holds
 `presentationHorizontalMargin` extra columns on each side of the displayed buffer and draws a primitive into them
 when its draw area spans the buffer. The guest still projects with centre 160 and a 320 clip, so the only thing that
 stops a margin quad is the guest's own screen reject. BATTLE's room draw is

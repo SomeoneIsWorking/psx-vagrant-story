@@ -6,7 +6,8 @@
 #include "game.h"
 #include "native_dispatch.h"
 #include "proj_params.h"
-#include "runtime/vagrant_context.h"
+#include "runtime/session.h"
+#include "stock_libgte.h"
 
 #include <cstdlib>
 #include <lucent/log.h>
@@ -43,20 +44,20 @@ vagrant::BattleProjectionOwner *ownerFor(Core *core, const char *leaf) {
     lucent::error("vagrant-proj", "SLUS_010.40 {} override ran with no Core", leaf);
     std::abort();
   }
-  return &vagrant::contextOf(*core).battleProjection;
+  return &vagrant::session(*core).battleProjection;
 }
 
 // The GTE control registers the leaves write; the leaf's whole effect is `CR24 = ofx << 16`.
-std::int32_t publishedCentreX(const Core &core) {
-  return static_cast<std::int32_t>(gte_read_ctrl(facts::kGteControlOfx) >> 16);
+std::int32_t publishedCentreX(Core &core) {
+  return static_cast<std::int32_t>(core.gte().readControl(facts::kGteControlOfx) >> 16);
 }
 
-std::int32_t publishedCentreY(const Core &core) {
-  return static_cast<std::int32_t>(gte_read_ctrl(facts::kGteControlOfy) >> 16);
+std::int32_t publishedCentreY(Core &core) {
+  return static_cast<std::int32_t>(core.gte().readControl(facts::kGteControlOfy) >> 16);
 }
 
-std::int32_t publishedScreenDistance(const Core &core) {
-  return static_cast<std::int32_t>(gte_read_ctrl(facts::kGteControlH) & 0xFFFFu);
+std::int32_t publishedScreenDistance(Core &core) {
+  return static_cast<std::int32_t>(core.gte().readControl(facts::kGteControlH) & 0xFFFFu);
 }
 
 } // namespace
@@ -71,12 +72,8 @@ void BattleProjectionOwner::publishCentre(Core &core) {
     refuse("a guest centre was negative, so there is no centre to record");
   }
 
-  // SetGeomOffset (0x80041540) is two `sll` by 16 and two CR24/CR25 moves; the primitive owns the
-  // write and psxport's record of it.
-  libgte_set_geom_offset(&core, statedX, statedY);
-  // The leaf leaves its arguments shifted, as its own body does.
-  core.r[kCentreXArgument] = static_cast<std::uint32_t>(statedX) << 16;
-  core.r[kCentreYArgument] = static_cast<std::uint32_t>(statedY) << 16;
+  // SetGeomOffset (0x80041540) is two `sll` by 16 and two CR24/CR25 moves, and leaves its arguments shifted.
+  psx::hle::StockLibgte::setGeomOffset(core);
 
   recordCentre(core, statedX, statedY);
 }
@@ -85,7 +82,7 @@ void BattleProjectionOwner::publishScreenDistance(Core &core) {
   // Recorded, never modified: BATTLE branches on this word (kProjectionDistanceBranchThreshold).
   const auto statedH = static_cast<std::int32_t>(core.r[kScreenDistanceArgument]);
   // SetGeomScreen (0x80041534) is one CR26 move and does not transform its argument.
-  libgte_set_geom_screen(&core, statedH);
+  psx::hle::StockLibgte::setGeomScreen(core);
   recordScreenDistance(core, statedH);
 }
 
