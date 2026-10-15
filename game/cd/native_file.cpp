@@ -21,7 +21,7 @@ std::uint32_t readDiscSector(Core &core, std::uint32_t lba, std::span<std::uint8
   if (destination.size() != kSectorSize) {
     return 0u;
   }
-  return disc_read_sector(&core.game->disc, lba, destination.data()) ? kSectorSize : 0u;
+  return core.game->disc.readSector(lba, destination.data()) ? kSectorSize : 0u;
 }
 
 bool readNativeFile(Core &core, std::uint32_t lba, std::uint32_t size, std::uint32_t destination) {

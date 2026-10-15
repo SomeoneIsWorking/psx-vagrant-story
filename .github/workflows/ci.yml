@@ -9,14 +9,16 @@ on:
 permissions:
   contents: read
 
-# The dynarec adapter is not implemented, so this Linux-hosted job runs the
-# asset-free launcher/provisioning/structure verifier without claiming product
-# support for the host operating system.
+# This Linux-hosted job builds the asset-free product and runs the launcher, provisioning, structure
+# and C++ policy gate.
 jobs:
   policy:
-    name: Asset-free policy (Linux host)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    name: Asset-free product gate (Linux host)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    env:
+      CC: clang
+      CXX: clang++
     steps:
       - name: Checkout full history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,5 +36,11 @@ jobs:
         run: test "$(git rev-parse --is-shallow-repository)" = false
       - name: Install locked Python environment
         run: uv sync --locked
+      - name: Resolve the framework
+        run: uv run --no-project https://raw.githubusercontent.com/SomeoneIsWorking/psxport/main/tools/psxport_fetch.py --auto
+      - name: Provision the shared pinned Linux build inputs
+        uses: ./external/psxport/.github/actions/setup-linux
+        with:
+          framework-directory: external/psxport
       - name: Run the maintained verifier
         run: uv run --frozen python tools/verify.py

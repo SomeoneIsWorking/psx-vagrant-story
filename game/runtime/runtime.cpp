@@ -41,7 +41,7 @@ constexpr psx::cd::StockLibcd::Entries kLibcdEntries{.sync = cd::kCdSync};
 } // namespace
 
 Runtime::Runtime()
-    : vsync_(sync::kVSync, sync::kVSyncQueryCounter), libcd_(kLibcdEntries, {}, 0u),
+    : vsync_({.entry = sync::kVSync, .queryCounter = sync::kVSyncQueryCounter}), libcd_(kLibcdEntries, {}, 0u),
       dmaCallbacks_(resident::kDmaCallbackTable) {
 }
 
@@ -115,15 +115,6 @@ void Runtime::deliverPad(Core &core, const psx::input::PadDelivery &delivery) {
 
 const GuestWidescreenProjection *Runtime::guestWidescreenProjection() const {
   return &widescreen_;
-}
-
-RenderCapabilities Runtime::renderCapabilities() const {
-  // The picture is the guest's GP0 output replayed from the frame record.
-  return RenderCapabilities{.defaultPath = RenderPath::Record, .nativeRenderPath = false};
-}
-
-bool Runtime::guestVramIsPicture(const Game &) const {
-  return true;
 }
 
 bool Runtime::titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) {

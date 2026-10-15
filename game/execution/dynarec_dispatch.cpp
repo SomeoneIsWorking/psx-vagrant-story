@@ -57,19 +57,18 @@ std::uint32_t callReturning0(Core &core, std::uint32_t address) {
 }
 
 std::uint32_t callReturning1(Core &core, std::uint32_t address, std::uint32_t a0) {
-  psx::cpu::dispatchGuestToReturn1(core, address, a0, psx::cpu::ExecutionBudget::currentTurn(core), "guest call1");
+  psx::cpu::callGuestNow(core, "guest call1", address, a0);
   return core.r[2];
 }
 
 std::uint32_t callReturning2(Core &core, std::uint32_t address, std::uint32_t a0, std::uint32_t a1) {
-  psx::cpu::dispatchGuestToReturn2(core, address, a0, a1, psx::cpu::ExecutionBudget::currentTurn(core), "guest call2");
+  psx::cpu::callGuestNow(core, "guest call2", address, a0, a1);
   return core.r[2];
 }
 
 std::uint32_t callReturning4(
     Core &core, std::uint32_t address, std::uint32_t a0, std::uint32_t a1, std::uint32_t a2, std::uint32_t a3) {
-  psx::cpu::dispatchGuestToReturn4(
-      core, address, a0, a1, a2, a3, psx::cpu::ExecutionBudget::currentTurn(core), "guest call4");
+  psx::cpu::callGuestNow(core, "guest call4", address, a0, a1, a2, a3);
   return core.r[2];
 }
 
@@ -101,7 +100,7 @@ void requireGuestReturn(const psx::cpu::ExecutionResult &result, std::string_vie
 }
 
 void ResumableContinuation::begin(Core &core, std::uint32_t entry, std::string_view owner, std::uint32_t returnPc) {
-  call_.begin(core, owner, entry, returnPc, psx::cpu::kUnboundedCallTurns);
+  call_.begin(core, owner, psx::cpu::GuestCallSite{entry, returnPc}, psx::cpu::kUnboundedCallTurns);
 }
 
 ContinuationStep ResumableContinuation::advance() {

@@ -69,16 +69,15 @@ bool retailInputs(const std::filesystem::path &directory, bool discTransfer) {
     const auto bytes = readFile(path);
     vagrant::OverlayLoadResult loaded;
     if (discTransfer) {
-      std::uint32_t lba = 0u;
-      std::uint32_t fileBytes = 0u;
-      if (!require(disc_find_file(&game->disc, isoPath, &lba, &fileBytes) && fileBytes == bytes.size(),
+      const psx::cd::DiscFile file = game->disc.findFile(isoPath).value_or(psx::cd::DiscFile{});
+      if (!require(file.size != 0u && file.size == bytes.size(),
                    "retail CD directory differs from the authenticated overlay file")) {
         return false;
       }
+      const std::uint32_t lba = file.lba;
       std::vector<std::uint8_t> sectors(((bytes.size() + 2047u) / 2048u) * 2048u);
       for (std::size_t offset = 0; offset < sectors.size(); offset += 2048u) {
-        if (!require(disc_read_sector(
-                         &game->disc, lba + static_cast<std::uint32_t>(offset / 2048u), sectors.data() + offset),
+        if (!require(game->disc.readSector(lba + static_cast<std::uint32_t>(offset / 2048u), sectors.data() + offset),
                      "retail CD sector read failed")) {
           return false;
         }

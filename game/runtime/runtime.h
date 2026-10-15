@@ -33,8 +33,6 @@ public:
 
   // The canvas holds the margins and BATTLE's culls widen what is drawn; the projection word is gameplay state.
   const GuestWidescreenProjection *guestWidescreenProjection() const override;
-  RenderCapabilities renderCapabilities() const override;
-  bool guestVramIsPicture(const Game &game) const override;
 
   // `warp <save point>`.
   bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;

@@ -27,6 +27,7 @@ REQUIRED_TOOLS = ("cmake", "git", "ninja")
 
 # Where the framework lands without `PSXPORT_DIR`: a symlink to the workspace checkout, or a clone.
 DEFAULT_FRAMEWORK = Path("external/psxport")
+FRAMEWORK_FETCH = ["uv", "run", "--no-project", "https://raw.githubusercontent.com/SomeoneIsWorking/psxport/main/tools/psxport_fetch.py", "--auto"]
 
 
 def _distribution() -> str:
@@ -84,19 +85,15 @@ def require_tool(name: str) -> str:
 def framework_checkout(environment: Mapping[str, str], root: Path) -> Path:
     """Resolve the framework, establishing the workspace symlink when the environment does not.
 
-    `PSXPORT_DIR` wins; otherwise the repository's fetch tool creates `external/psxport`.
+    `PSXPORT_DIR` wins; otherwise psxport's fetch tool, run from psxport `main`, creates a missing link.
     """
     configured = environment.get("PSXPORT_DIR")
     if configured:
         framework = Path(configured)
         return framework if framework.is_absolute() else root / framework
-    subprocess.run(
-        [sys.executable, "tools/psxport_fetch.py", "--auto"],
-        cwd=root,
-        check=True,
-        env=dict(environment),
-    )
     framework = root / DEFAULT_FRAMEWORK
+    if not (framework / "cmake" / "psxport.cmake").is_file():
+        subprocess.run(FRAMEWORK_FETCH, cwd=root, check=True, env=dict(environment))
     if not (framework / "cmake" / "psxport.cmake").is_file():
         raise ProductUnavailable(f"{framework} has no cmake/psxport.cmake — it is not a psxport checkout")
     return framework
