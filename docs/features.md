@@ -35,12 +35,6 @@ Title hops only. Each row is where Vagrant Story joins a psxport feature hop (`p
 | 2 | psxport F-CD.1 | `game/cd/ds_control.cpp:handleDsControl` — the blocking `DsControlB` body |
 | 3 | psxport F-CD.3 | `game/images/overlay_images.cpp:OverlayImages` — TITLE/BATTLE/INITBTL published as image generations |
 
-## F-RENDER
-
-| hop | joins | owner |
-|---|---|---|
-| 1 | psxport F-RENDER.1 | `game/runtime/runtime.cpp:Runtime::renderCapabilities` — Record, guest VRAM is the picture |
-
 ## F-WIDE
 
 | hop | joins | owner |

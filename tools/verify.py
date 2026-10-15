@@ -42,13 +42,11 @@ def run(*command: object, capture: bool = False) -> subprocess.CompletedProcess[
 
 def resolve_framework() -> Path | None:
     configured = os.environ.get("PSXPORT_DIR")
-    if not configured and run(sys.executable, ROOT / "tools" / "psxport_fetch.py", "--auto").returncode:
-        return None
     framework = Path(configured) if configured else ROOT / "external" / "psxport"
     if not framework.is_absolute():
         framework = ROOT / framework
     if not (framework / "tools" / "check_cpp_style.py").is_file():
-        print(f"[verify] REFUSED: psxport C++ policy owner is missing: {framework}", file=sys.stderr)
+        print(f"[verify] REFUSED: no framework at {framework}; run `uv run --no-project https://raw.githubusercontent.com/SomeoneIsWorking/psxport/main/tools/psxport_fetch.py --auto`", file=sys.stderr)
         return None
     return framework.absolute()
 

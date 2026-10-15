@@ -101,7 +101,7 @@ def check_repository(root: Path) -> list[Finding]:
     shell_scripts = sorted(
         path.relative_to(root).as_posix()
         for path in root.rglob("*.sh")
-        if "external" not in path.relative_to(root).parts and path.name != "run.sh"
+        if not any(part in SKIPPED_PARTS for part in path.relative_to(root).parts) and path.name != "run.sh"
     )
     findings.extend(Finding(path, 1, "project automation must be Python") for path in shell_scripts)
     return findings

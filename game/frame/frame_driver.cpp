@@ -21,11 +21,12 @@ void serviceInput(Core &core) {
 }
 
 void present(Core &core) {
-  core.game->presentation.commit(&core);
+  core.game->presentation.commit(&core, 1);
 }
 
+// One stepFrame is one guest field.
 void pace(Core &core) {
-  core.game->framePacer.paceFrame(core);
+  core.game->framePacer.paceSubframeFields(core, {1, 1});
 }
 
 void serviceLibDs(Core &core) {
