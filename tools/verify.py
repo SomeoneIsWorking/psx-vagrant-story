@@ -31,6 +31,7 @@ PRODUCT_TARGET = "vagrant_port"
 REQUIRED_TESTS = NATIVE_TESTS
 sys.path.insert(0, str(ROOT))
 
+from tools.launcher.runtime_boundary import load_framework_policy
 from tools.quality.structure import check_repository
 
 
@@ -86,6 +87,7 @@ def verify_compile_coverage() -> bool:
 
 
 def verify_native(framework: Path) -> bool:
+    policy = load_framework_policy(framework, "project.py")
     configured = run(
         "cmake",
         "-S", ROOT,
@@ -94,6 +96,8 @@ def verify_native(framework: Path) -> bool:
         "-DBUILD_TESTING=ON",
         f"-DPython3_EXECUTABLE={sys.executable}",
         f"-DPSXPORT_DIR={framework}",
+        *policy["lightrec_cmake_definitions"](os.environ),
+        *policy["lightning_cmake_definitions"](os.environ),
     )
     if configured.returncode:
         return False
