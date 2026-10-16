@@ -17,7 +17,7 @@ Title hops only. Each row is where Vagrant Story joins a psxport feature hop (`p
 
 | hop | joins | owner |
 |---|---|---|
-| 1 | psxport F-TURN.2 | `game/frame/frame_driver.cpp:FrameDriver::stepFrame` — input, audio, one commit, pacing, CD IRQ poll, libds field, warp, phase resume |
+| 1 | psxport F-TURN.2 | `game/frame/frame_driver.cpp:FrameDriver::stepFrame` — input, audio, one paced commit (one field), CD IRQ poll, libds field, warp, phase resume |
 | 2 | psxport F-TURN.2 | `game/boot/resident_phase.cpp:ResidentPhase::advanceAfterField` — one host state per retail VSync, then TITLE and the exec tail as suspended guest calls |
 | 3 | psxport F-TURN.4 | `game/runtime/runtime.cpp:Runtime::reportRun` — the OT span census |
 

@@ -8,7 +8,9 @@ created: 2026-10-15
 updated: 2026-10-15
 ---
 
-Observed: New Game (`4300:tap start 4;4600:tap cross 6;4800:tap circle 6`), then `9000:warp 1`. The log shows
+Observed: New Game (`4300:tap start 4;4600:tap cross 6;4800:tap circle 6`), then `9000:warp 1`. Those frames were
+measured while each step delivered two fields (issue 0053); one field per step, the route is
+`8600:tap start 4;12000:tap cross 6;12600:tap circle 6;14000:warp <n>`. The log shows
 `save point 1: location 15 (zone 9 map 6) at (1, 8) requested`, then `host dispatch to 0x004B0001 FAILED ... the
 block that produced this target began at 0x8009969C` and `vs_main_execTitle tail stopped at 0x004B0001`. The same
 fault follows `warp 0` then `warp 1` from free roam (`0x800F196C` = 1), so the event-script mode is not the cause.
