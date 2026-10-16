@@ -11,7 +11,7 @@ class Game;
 
 namespace vagrant {
 
-// One display field: input, audio, the one presentation commit, pacing, the libds field service, an armed
+// One display field: input, audio, the one paced presentation commit, the libds field service, an armed
 // warp, then the resident/TITLE/BATTLE phases resume and draw what the next field commits.
 class FrameDriver final : public psx::game::FrameDriver {
 public:
@@ -22,7 +22,6 @@ public:
     FieldService input = nullptr;
     FieldService audio = nullptr;
     FieldService present = nullptr;
-    FieldService pace = nullptr;
     FieldService libDs = nullptr;
     FieldService resumeResident = nullptr;
     LocationWarp::Call4 call4 = nullptr;

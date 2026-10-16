@@ -18,7 +18,7 @@
 
 namespace {
 
-enum Event : std::uint8_t { Input = 1, Audio, Present, Pace, LibDs, Warp, Resume };
+enum Event : std::uint8_t { Input = 1, Audio, Present, LibDs, Warp, Resume };
 
 std::vector<int> g_events;
 std::array<std::uint32_t, 5> g_warpArgs{};
@@ -32,9 +32,6 @@ void audio(Core &) {
 }
 void present(Core &) {
   g_events.push_back(Present);
-}
-void pace(Core &) {
-  g_events.push_back(Pace);
 }
 void libDs(Core &) {
   g_events.push_back(LibDs);
@@ -91,19 +88,14 @@ int main() {
   }};
   game->sessionState = std::make_unique<vagrant::Session>(core, std::move(specs));
   vagrant::Session &owners = vagrant::session(core);
-  vagrant::FrameDriver driver(*game,
-                              {.input = input,
-                               .audio = audio,
-                               .present = present,
-                               .pace = pace,
-                               .libDs = libDs,
-                               .resumeResident = resume,
-                               .call4 = call4});
+  vagrant::FrameDriver driver(
+      *game,
+      {.input = input, .audio = audio, .present = present, .libDs = libDs, .resumeResident = resume, .call4 = call4});
   core.r[29] = 0x801FFF00u;
 
   driver.stepFrame(core, 41);
-  if (!require(g_events == std::vector<int>{Input, Audio, Present, Pace, LibDs, Resume},
-               "a field did not run input, audio, one commit, pacing, libds and the phases in order") ||
+  if (!require(g_events == std::vector<int>{Input, Audio, Present, LibDs, Resume},
+               "a field did not run input, audio, one paced commit, libds and the phases in order") ||
       !require(game->timing.logicFrame == 41u, "the field did not publish its host frame index")) {
     return 1;
   }
@@ -120,7 +112,7 @@ int main() {
   owners.execTitleTail.begin(core, 0u);
   g_events.clear();
   driver.stepFrame(core, 42);
-  if (!require(g_events == std::vector<int>{Input, Audio, Present, Pace, LibDs, Resume},
+  if (!require(g_events == std::vector<int>{Input, Audio, Present, LibDs, Resume},
                "a warp was taken while TITLE, not BATTLE, was resident")) {
     return 1;
   }
@@ -133,7 +125,7 @@ int main() {
   core.mem_w32(vagrant::LocationWarp::kScreenTransitionStep, 1u);
   g_events.clear();
   driver.stepFrame(core, 43);
-  if (!require(g_events == std::vector<int>{Input, Audio, Present, Pace, LibDs, Resume},
+  if (!require(g_events == std::vector<int>{Input, Audio, Present, LibDs, Resume},
                "a warp was taken while BATTLE's screen transition was in flight")) {
     return 1;
   }
@@ -142,7 +134,7 @@ int main() {
   g_events.clear();
   driver.stepFrame(core, 44);
   const vagrant::LocationWarp::Target target = vagrant::LocationWarp::target(3);
-  if (!require(g_events == std::vector<int>{Input, Audio, Present, Pace, LibDs, Warp, Resume},
+  if (!require(g_events == std::vector<int>{Input, Audio, Present, LibDs, Warp, Resume},
                "the armed warp was not taken between libds and the phases") ||
       !require(g_warpArgs[0] == vagrant::LocationWarp::kLocationTransition && g_warpArgs[1] == target.location &&
                    g_warpArgs[2] == target.x && g_warpArgs[3] == target.z &&
@@ -155,8 +147,28 @@ int main() {
 
   g_events.clear();
   driver.stepFrame(core, 45);
-  if (!require(g_events == std::vector<int>{Input, Audio, Present, Pace, LibDs, Resume},
-               "one armed warp was taken twice")) {
+  if (!require(g_events == std::vector<int>{Input, Audio, Present, LibDs, Resume}, "one armed warp was taken twice")) {
+    return 1;
+  }
+
+  // The shipping commit and pacing: one stepFrame delivers exactly one display field.
+  auto shipping = std::make_unique<Game>(runtime, psx::config::Config{.unpaced = true});
+  shipping->sessionState = std::make_unique<vagrant::Session>(shipping->core);
+  vagrant::FrameDriver::Services services = vagrant::FrameDriver::productionServices();
+  services.input = input;
+  services.audio = audio;
+  services.libDs = libDs;
+  services.resumeResident = resume;
+  services.call4 = call4;
+  vagrant::FrameDriver shippingDriver(*shipping, services);
+  const std::uint64_t beforeField = shipping->timing.emulatedCpuTicks();
+  shipping->framePacer.paceSubframeFields(shipping->core, {1, 1});
+  const std::uint64_t fieldTicks = shipping->timing.emulatedCpuTicks() - beforeField;
+  const std::uint64_t beforeStep = shipping->timing.emulatedCpuTicks();
+  shippingDriver.stepFrame(shipping->core, 1);
+  if (!require(fieldTicks != 0u, "pacing one field delivered no emulated time") ||
+      !require(shipping->timing.emulatedCpuTicks() - beforeStep == fieldTicks,
+               "one stepFrame delivered other than one display field")) {
     return 1;
   }
   std::puts("frame driver: one commit per field; warp taken once at an idle BATTLE field");

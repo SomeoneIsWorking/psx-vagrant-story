@@ -30,7 +30,7 @@ once per display field on psxport's Lightrec executor.
 | `createCatalog` | `game/product/catalog.*` | The one-title catalog over `kTitleIdentity`, provisioned under `scratch/bin` |
 | `vagrant::Runtime` | `game/runtime/runtime.*` | The `GameRuntime`: header check and resident publication (`admitExecutable`), `startProgram` into `ResidentPhase`, `StockVSync`/`StockLibcd`/`StockDmaCallbacks` bound at this executable's addresses, `CD_cw`, `deliverPad`, Record, the widescreen policy, the `warp` command, the run-end OT census |
 | `vagrant::Session`, `session(core)` | `game/runtime/session.*` | Per-Core owners: overlay residency, libds field, resident/TITLE/save phases, the exec tail, BATTLE projection |
-| `vagrant::FrameDriver` | `game/frame/frame_driver.*` | One display field: input, audio, the one `presentation.commit`, pacing, CD IRQ poll, libds field, an armed warp, then the phases resume |
+| `vagrant::FrameDriver` | `game/frame/frame_driver.*` | One display field: input, audio, the one `presentation.commit` (which paces and delivers the field), CD IRQ poll, libds field, an armed warp, then the phases resume |
 | `LocationWarp` | `game/frame/location_warp.*` | `warp <save point>`: BATTLE's location transition `func_8007C694`, called as the Teleportation spell calls it |
 | facts | `game/frame/vsync_facts.h` | libetc `VSync` and the field counter it polls |
 | `ResidentPhase` | `game/boot/resident_phase.*` | The resident bootstrap and TITLE reinitialisation as host states, one per retail VSync; hands TITLE and the `vs_main_execTitle` tail to suspended guest calls |
@@ -58,7 +58,7 @@ once per display field on psxport's Lightrec executor.
 | Hop | Owner |
 |---|---|
 | product spine | `ProductHost` → `TitleSession`: `admitExecutable` → `registerOverrides` → `startProgram` |
-| field | `FrameDriver::stepFrame`: `logicFrame`, `pad.serviceFrame`, `spu_audio.frame`, `presentation.commit`, `framePacer.paceFrame`, `hle.irqPoll` on `PW_IRQ`, `LibDsField::serviceField`, warp, `TitleSplashPhase` + `ResidentPhase::advanceAfterField` |
+| field | `FrameDriver::stepFrame`: `logicFrame`, `pad.serviceFrame`, `spu_audio.frame`, `presentation.commit` (paces one field through `GameRuntime::pacePresentation`), `hle.irqPoll` on `PW_IRQ`, `LibDsField::serviceField`, warp, `TitleSplashPhase` + `ResidentPhase::advanceAfterField` |
 | guest that spans fields | `GuestPhase` over a resumable call; a VSync or a spent turn suspends it, the next field resumes it |
 | presentation | psxport's record path replays the guest's GP0 output; one commit per field, at 30 or 15 fps as the game chooses |
 

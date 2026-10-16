@@ -2,7 +2,6 @@
 
 #include "core.h"
 #include "execution/dynarec_dispatch.h"
-#include "frame_pacer.h"
 #include "game.h"
 #include "runtime/session.h"
 
@@ -20,13 +19,9 @@ void serviceInput(Core &core) {
   core.game->pad.serviceFrame();
 }
 
+// One stepFrame is one guest field; the commit waits for it and delivers it.
 void present(Core &core) {
   core.game->presentation.commit(&core, 1);
-}
-
-// One stepFrame is one guest field.
-void pace(Core &core) {
-  core.game->framePacer.paceSubframeFields(core, {1, 1});
 }
 
 void serviceLibDs(Core &core) {
@@ -46,7 +41,6 @@ FrameDriver::Services FrameDriver::productionServices() {
       .input = serviceInput,
       .audio = serviceAudio,
       .present = present,
-      .pace = pace,
       .libDs = serviceLibDs,
       .resumeResident = resumePhases,
       .call4 = dynarec::callReturning4,
@@ -61,8 +55,8 @@ FrameDriver::FrameDriver(Game &game, Services services) : game_(game), services_
 }
 
 void FrameDriver::requireServices(const Services &services) {
-  if (services.input && services.audio && services.present && services.pace && services.libDs &&
-      services.resumeResident && services.call4) {
+  if (services.input && services.audio && services.present && services.libDs && services.resumeResident &&
+      services.call4) {
     return;
   }
   lucent::error("vagrant-frame", "the frame driver requires every field service");
@@ -92,7 +86,6 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   services_.audio(core);
   // The guest drew the last field's pass on the device; this is its one presentation.
   services_.present(core);
-  services_.pace(core);
 
   // Service the CD IRQ guest callback at this boundary; not a VBlank delivery.
   if ((core.pending_work & Core::PW_IRQ) != 0) {
