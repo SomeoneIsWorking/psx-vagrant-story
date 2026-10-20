@@ -64,8 +64,6 @@ def configure_command(psxport, build_dir, cc, cxx, python):
         "-B",
         str(build_dir),
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DBUILD_TESTING=OFF",
-        "-DPSXPORT_BUILD_TESTS=OFF",
         f"-DCMAKE_C_COMPILER={cc}",
         f"-DCMAKE_CXX_COMPILER={cxx}",
         f"-DPython3_EXECUTABLE={python}",

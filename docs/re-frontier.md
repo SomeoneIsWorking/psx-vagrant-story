@@ -35,7 +35,6 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   `loadPsxExeImage` publication and image catalog. `vagrant_image_contract` proves the positive
   entry/range/catalog path and the changed-entry refusal with a synthetic PS-X shape.
 - where: `game/runtime/runtime.{h,cpp}`, `game/boot/resident_image.h`,
-  `tests/test_image_contract.cpp`,
   `CLAUDE.md`
 - gap: The measured resident header is admitted in a process that reads the file whole and refuses
   any other size. A run now enters the guest at `0x8001F544` and executes the resident leaf order on
@@ -61,8 +60,8 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   guest RAM, publishes it without a second copy, and invalidates the previous slot generation. Its
   synthetic test refuses changed payload, changed padding, and foreign tail residency; a valid
   in-RAM TITLE-to-BATTLE replacement executes newly translated code with zero fallback.
-- where: `tools/extract_overlays.py`, `tests/test_overlay_inputs.py`,
-  `game/images/overlay_images.cpp`, `tests/test_overlay_images.cpp`
+- where: `tools/extract_overlays.py`,
+  `game/images/overlay_images.cpp`
 - gap: The finite resident TITLE read now publishes only after all 271 native sectors complete and
   the acquired buffer passes image authentication.
   A future path using the natural CD queue must publish only at its successful Loaded transition;
@@ -109,8 +108,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - where: `game/boot/`, `game/cd/`, `game/execution/`, `game/frame/`, `game/images/`, `game/input/`,
   `game/render/`, `game/runtime/`, `game/save/`, `game/title/`
 - gap: The one image-scoped psxport native-override adapter EXISTS and is exercised
-  (`vagrant::dynarec`, `vagrant::installResidentNativeOwners`, CTest `vagrant_dynarec_dispatch`:
-  7/7 groups, every one a negative as well as a positive). The first leaf it made reachable is
+  (`vagrant::dynarec`, `vagrant::installResidentNativeOwners`). The first leaf it made reachable is
   S007's allocator, which now runs natively and re-enters the original guest body, and the run of
   2026-10-04 records exactly one invocation of it with one original call that returned. What is NOT
   done: the other retained owners are still called as finite guest leaves rather than registered as
@@ -162,8 +160,8 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - evidence: `TITLE.PRG` is 554,568 bytes, SHA-1
   `f74a76e6215edebf607d0c2af56481050edb139a`, loads at `0x80068800`, and enters at `0x80071334`.
   The exact resident has `jal 0x80071334` at `0x80042BD8` with a zero delay slot.
-- where: `tools/extract_overlays.py`, `tests/test_overlay_inputs.py`,
-  `game/images/overlay_images.cpp`, `tests/test_overlay_images.cpp`
+- where: `tools/extract_overlays.py`,
+  `game/images/overlay_images.cpp`
 - gap: `ResidentPhase` enters TITLE itself rather than through the resident's direct JAL.
 
 ### RE-12 — TITLE publisher/developer splash producer
@@ -195,9 +193,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - deps: RE-03
 - evidence: Exact BATTLE and INITBTL bytes, bases, and historical reach remain recorded by the
   extraction tools and the shipped BATTLE fact tables.
-- where: `tools/extract_overlays.py`, `game/render/battle_projection_facts.h`,
-  `tests/test_overlay_inputs.py`, `game/images/overlay_images.cpp`,
-  `tests/test_overlay_images.cpp`
+- where: `tools/extract_overlays.py`, `game/render/battle_projection_facts.h`, `game/images/overlay_images.cpp`
 - gap: BATTLE/INITBTL admission and TITLE→BATTLE generation replacement now have a focused
   synthetic Lightrec proof. Runtime CD-load integration, reached entries, and image-scoped native
   registration remain missing.
@@ -226,9 +222,9 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
 - status: re-partial
 - deps: RE-05, RE-10
 - evidence: `game/frame/frame_driver.cpp` owns explicit per-field service order and one presentation
-  commit, pinned by `tests/test_frame_driver.cpp`; psxport's `TitleSession` runs it as the product loop.
+  commit; psxport's `TitleSession` runs it as the product loop.
   2026-10-15: boot to TITLE, New Game, BATTLE prologue and warped free roam in one run.
-- where: `game/frame/frame_driver.cpp`, `tests/test_frame_driver.cpp`, `tests/test_boot_route.cpp`
+- where: `game/frame/frame_driver.cpp`
 - gap: none for the boot route.
 
 ### RE-19 — finite system initialization and TITLE loading phase
@@ -257,7 +253,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   `OverlayImages::loadTransfer` authenticates the buffer before copying RAM and activating identity.
   The shipping-path synthetic test rejects a short final sector even with matching RAM and preserves
   a prior identity and RAM on both short and complete altered replacements.
-- where: `game/cd/`, `game/images/title_transfer.cpp`, `tests/test_title_transfer.cpp`
+- where: `game/cd/`, `game/images/title_transfer.cpp`
 - gap: Validate override ABI, failure paths, and ordinary dynarec comparison on the real title. The
   resident-to-TITLE guest continuation remains uncomposed, and the CD wait that ends the boot is a
   declared-callback gap (issue 0042).
@@ -320,7 +316,7 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   `[0,224)` then columns against `[0,320)` and returns when all four vertices lie past one side. Nothing reads its
   result but packet emission, so it is widened for drawing (`game/render/battle_cull.cpp`). Actors have no
   screen-space cull.
-- where: `game/render/battle_cull.{h,cpp}`, `tests/test_battle_cull.cpp`
+- where: `game/render/battle_cull.{h,cpp}`
 - gap: the sky-dome inline reject near `0x8009820C`, the literal-320 gradient in `0x8008EC48`, rain `0x8008F440`,
   particles, HUD and the `0x800BB874` scanline effect still use retail 4:3 limits; whether any of their results
   feeds gameplay is unread. `0x80098160` (near-clip consumer) is named but not decompiled.
@@ -335,6 +331,6 @@ Statuses: `re-verified`, `re-partial`, `in-progress`, `todo`, `skip-by-design`, 
   sets the mode word `0x800F196C` to 1 (free roam; 3 is an event script). `0x800F1A48` is the transition step, 0
   when none is in flight. `vs_main_locationZoneMapIds` `0x8004F0CC` holds a zone and a map byte per location.
   2026-10-15: from the New Game prologue (mode 3), save points 0, 2, 3, 6 and 12 load and leave mode 1.
-- where: `game/frame/location_warp.{h,cpp}`, `tests/test_location_warp.cpp`, `tests/test_frame_driver.cpp`
+- where: `game/frame/location_warp.{h,cpp}`
 - gap: save point 1 faults in `vs_battle_processObjectDataQueue` (issue 0052); the warp skips
   `func_800A1108`, `func_8006F4B0` and state flag `0xB7`, which the spell sets before the transition.
