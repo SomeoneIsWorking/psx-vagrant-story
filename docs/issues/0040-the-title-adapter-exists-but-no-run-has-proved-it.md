@@ -20,7 +20,7 @@ image identity, or chooses a dispatch form, so there is one answer to "how long 
 
 `VagrantRuntime` (`game/runtime/vagrant_runtime.cpp`) composes it, and the framework main runs the
 product through `game/entry/vagrant_catalog.cpp`.
-`tools/launcher/runtime_boundary.py` no longer refuses a product: it provisions the measured inputs,
+`tools/run.py` no longer refuses a product: it provisions the measured inputs,
 configures, builds `vagrant_port`, and launches it.
 
 ## What is established by the contracts, and what each one does NOT establish
