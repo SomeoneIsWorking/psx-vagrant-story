@@ -127,12 +127,12 @@ OverlayLoadResult OverlayImages::publish(OverlayKind kind,
   if (lucent::content::sha256_hex(digest) != spec->sha256) {
     return {std::nullopt, spec->name + " SHA-256 differs from the authenticated retail image"};
   }
-  if (core_.currentImageIdentity(spec->guestBase) != active_[*slot]) {
+  if (core_.imageCatalog().resolve(spec->guestBase) != active_[*slot]) {
     return {std::nullopt, spec->name + " slot residency changed outside its owner"};
   }
   for (std::size_t offset = 0; offset < sectorTail.size(); ++offset) {
     const auto identity =
-        core_.currentImageIdentity(spec->guestBase + static_cast<std::uint32_t>(bytes.size() + offset));
+        core_.imageCatalog().resolve(spec->guestBase + static_cast<std::uint32_t>(bytes.size() + offset));
     if (identity && identity != active_[*slot]) {
       return {std::nullopt, spec->name + " final-sector range belongs to another image"};
     }

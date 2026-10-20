@@ -62,7 +62,7 @@ psx::cpu::PsxExeLoadResult Runtime::admitExecutable(Core &core, std::span<const 
   if (!matchesResidentHeader(parsed.image.value())) {
     return {std::nullopt, {}, headerMismatch(parsed.image.value())};
   }
-  auto loaded = psx::cpu::loadPsxExeImage(core, bytes, kResidentImageName);
+  auto loaded = psx::cpu::loadTopLevelPsxExe(core, bytes, kResidentImageName);
   if (!loaded.identity.has_value()) {
     return loaded;
   }
@@ -81,7 +81,6 @@ psx::cpu::PsxExeLoadResult Runtime::admitExecutable(Core &core, std::span<const 
                   registration.refusedOwner);
     std::abort();
   }
-  psx::cpu::applyPsxExeTopLevelRegisters(core, loaded.image);
   lucent::info(
       "vagrant-boot", "resident generation {}/{} owns its native leaves", residentImage.id, residentImage.generation);
   return loaded;
@@ -121,7 +120,7 @@ bool Runtime::titleCommand(Core &core, const psx::game::TitleCommandLine &input,
   if (std::strcmp(input.command, "warp") != 0) {
     return false;
   }
-  std::fprintf(reply, "%s\n", FrameDriver::from(core).armWarp(core, input.line).c_str());
+  std::fprintf(reply, "%s\n", core.game->frameDriverAs<FrameDriver>().armWarp(input.args).c_str());
   return true;
 }
 
