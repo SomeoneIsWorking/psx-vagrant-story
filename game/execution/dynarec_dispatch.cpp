@@ -74,7 +74,7 @@ std::uint32_t callReturning4(
 }
 
 psx::cpu::ExecutionResult executeTurn(Core &core, std::uint32_t address) {
-  return psx::cpu::dispatchGuestUntilExit(core, address, psx::cpu::ExecutionBudget::currentTurn(core));
+  return psx::cpu::dispatchGuestUntilExitNow(core, address);
 }
 
 psx::cpu::ExecutionResult callOriginal(Core &core, psx::cpu::NativeKey key) {
