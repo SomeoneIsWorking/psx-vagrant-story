@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+# This Linux-hosted job builds the asset-free product.
+jobs:
+  build:
+    name: Build (Linux host)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install locked uv and Python
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: '0.10.12'
+          python-version: '3.12'
+          enable-cache: false
+      - name: Verify checkout is not shallow
+        shell: bash
+        run: test "$(git rev-parse --is-shallow-repository)" = false
+      - name: Install locked Python environment
+        run: uv sync --locked
+      - name: Resolve the framework
+        run: uv run --no-project https://raw.githubusercontent.com/SomeoneIsWorking/psxport/main/tools/psxport_fetch.py --auto
+      - name: Provision the shared pinned Linux build inputs
+        uses: ./external/psxport/.github/actions/setup-linux
+        with:
+          framework-directory: external/psxport
+      - name: Build the product
+        run: uv run --frozen python external/psxport/tools/port/consumer_build.py --build build/ci --target vagrant_port
