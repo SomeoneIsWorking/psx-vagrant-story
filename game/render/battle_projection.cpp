@@ -87,7 +87,7 @@ void BattleProjectionOwner::publishScreenDistance(Core &core) {
 }
 
 void BattleProjectionOwner::recordCentre(Core &core, std::int32_t statedX, std::int32_t statedY) {
-  const ProjParams &projection = core.rsub.projParams;
+  const psx::present::ProjParams &projection = core.rsub.projParams;
   const auto recordedX = static_cast<std::int32_t>(projection.geomOfx());
   const auto recordedY = static_cast<std::int32_t>(projection.geomOfy());
   if (recordedX != publishedCentreX(core)) {
@@ -114,7 +114,7 @@ void BattleProjectionOwner::recordCentre(Core &core, std::int32_t statedX, std::
 }
 
 void BattleProjectionOwner::recordScreenDistance(Core &core, std::int32_t statedH) {
-  const ProjParams &projection = core.rsub.projParams;
+  const psx::present::ProjParams &projection = core.rsub.projParams;
   const auto recorded = static_cast<std::int32_t>(projection.geomH());
   const auto published = publishedScreenDistance(core);
   if (recorded != published) {
