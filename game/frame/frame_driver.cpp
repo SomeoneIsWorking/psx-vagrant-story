@@ -63,17 +63,8 @@ void FrameDriver::requireServices(const Services &services) {
   std::abort();
 }
 
-FrameDriver &FrameDriver::from(Core &core) {
-  auto *const driver = core.game == nullptr ? nullptr : dynamic_cast<FrameDriver *>(core.game->frameDriver.get());
-  if (driver == nullptr) {
-    lucent::error("vagrant-frame", "a Vagrant Story owner reached a Core with no Vagrant Story frame driver");
-    std::abort();
-  }
-  return *driver;
-}
-
-std::string FrameDriver::armWarp(Core &, const char *line) {
-  return warp_.arm(line);
+std::string FrameDriver::armWarp(const psx::debug::CommandArgs &args) {
+  return warp_.arm(args);
 }
 
 void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {

@@ -34,9 +34,8 @@ public:
 
   void stepFrame(Core &core, std::uint32_t frame) override;
   // Arms a `warp <save point>` request; a later field takes it through BATTLE's own location transition.
-  std::string armWarp(Core &core, const char *line);
+  std::string armWarp(const psx::debug::CommandArgs &args);
 
-  static FrameDriver &from(Core &core);
 
 private:
   static void requireServices(const Services &services);

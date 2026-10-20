@@ -19,7 +19,7 @@ namespace {
 
 // Runs the native allocator initialiser, then the original guest body for the rest of the function.
 void initHeapOverride(Core *core) {
-  const auto image = core->currentImageIdentity(heap::kInitHeap);
+  const auto image = core->imageCatalog().resolve(heap::kInitHeap);
   heap::initHeap(core);
   if (!image) {
     lucent::warn("vagrant-heap",

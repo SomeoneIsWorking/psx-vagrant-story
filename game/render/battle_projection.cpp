@@ -243,7 +243,7 @@ bool installBattleProjection(Core &core, psx::cpu::ImageIdentity residentImage) 
 
   // Resolve every leaf before installing any, so a rejected address leaves nothing half-installed.
   for (const Binding &binding : bindings) {
-    const auto resolved = core.currentImageIdentity(binding.address);
+    const auto resolved = core.imageCatalog().resolve(binding.address);
     if (!resolved) {
       lucent::error("vagrant-proj",
                     "{} at 0x{:08X} resolves to no active image, so it is not this title's resident "

@@ -20,7 +20,7 @@ bool installNativeOverride(Core &core,
     lucent::error("vagrant-dynarec", "override '{}' at 0x{:08X} has no handler; refusing to install", name, address);
     return false;
   }
-  const auto image = core.currentImageIdentity(address);
+  const auto image = core.imageCatalog().resolve(address);
   if (!image) {
     lucent::error("vagrant-dynarec",
                   "override '{}' at 0x{:08X} resolves to no unambiguous active image, so it is not this "
@@ -48,11 +48,12 @@ bool installNativeOverride(Core &core,
 }
 
 psx::cpu::ExecutionResult callGuest(Core &core, std::uint32_t address) {
-  return psx::cpu::dispatchGuest(core, address, psx::cpu::ExecutionBudget::currentTurn(core));
+  return psx::cpu::dispatchGuest(
+      core, address, psx::cpu::ExecutionBudget::currentTurn(core), "vagrant::dynarec::callGuest");
 }
 
 std::uint32_t callReturning0(Core &core, std::uint32_t address) {
-  psx::cpu::dispatchGuestToReturn0(core, address, psx::cpu::ExecutionBudget::currentTurn(core), "guest call0");
+  psx::cpu::callGuestNow(core, "guest call0", address);
   return core.r[2];
 }
 
@@ -89,7 +90,7 @@ void callOriginalToReturn(Core &core, std::uint32_t address, std::string_view ow
 }
 
 psx::cpu::ExecutionResult callOriginalResuming(Core &core, psx::cpu::NativeKey key) {
-  return psx::cpu::callOriginalResumingToExit(core, key, psx::cpu::ExecutionBudget::currentTurn(core));
+  return psx::cpu::callOriginalResumingToExit(core, "vagrant::dynarec::callOriginalResuming", key);
 }
 
 void requireGuestReturn(const psx::cpu::ExecutionResult &result, std::string_view owner) {
@@ -124,7 +125,7 @@ bool hasNativeOverride(Core &core, psx::cpu::ImageIdentity image, std::uint32_t 
   if (image == psx::cpu::ImageIdentity{}) {
     return false;
   }
-  if (core.currentImageIdentity(address) != image) {
+  if (core.imageCatalog().resolve(address) != image) {
     return false;
   }
   return core.nativeDispatcher().isInstalled({image, address});

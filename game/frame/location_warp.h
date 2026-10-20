@@ -1,10 +1,11 @@
 #pragma once
 
+#include "command_args.h"
+
 #include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <string_view>
 
 class Core;
 
@@ -43,8 +44,8 @@ public:
 
   explicit LocationWarp(Call4 call);
 
-  // Parses one command line; the returned text answers the client.
-  std::string arm(std::string_view line);
+  // The returned text answers the client.
+  std::string arm(const psx::debug::CommandArgs &args);
   bool armed() const {
     return armed_.has_value();
   }
