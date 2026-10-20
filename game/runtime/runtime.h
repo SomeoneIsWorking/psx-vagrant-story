@@ -32,7 +32,7 @@ public:
   void deliverPad(Core &core, const psx::input::PadDelivery &delivery) override;
 
   // The canvas holds the margins and BATTLE's culls widen what is drawn; the projection word is gameplay state.
-  const GuestWidescreenProjection *guestWidescreenProjection() const override;
+  const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
 
   // `warp <save point>`.
   bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
@@ -51,7 +51,7 @@ private:
   psx::cd::StockLibcd libcd_;
   psx::hle::StockDmaCallbacks dmaCallbacks_;
   PadBuffers pad_;
-  GuestWidescreenProjection widescreen_;
+  psx::present::GuestWidescreenProjection widescreen_;
 };
 
 } // namespace vagrant
