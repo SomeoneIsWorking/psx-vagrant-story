@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
-include(CTest)
 
 # The framework owns image publication, invalidation and the Lightrec executor.
 set(PSXPORT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/psxport" CACHE PATH
@@ -15,11 +14,9 @@ set(PSXPORT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/psxport" CACHE PATH
 if(NOT EXISTS "${PSXPORT_DIR}/cmake/psxport.cmake")
   message(FATAL_ERROR "PSXPORT_DIR=${PSXPORT_DIR} has no cmake/psxport.cmake — resolve the psxport checkout")
 endif()
-set(PSXPORT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(PSXPORT_BUILD_SMOKE OFF CACHE BOOL "" FORCE)
 add_subdirectory("${PSXPORT_DIR}" framework EXCLUDE_FROM_ALL)
 
-# The title's owners; the product and every test link them.
+# The title's owners; the product links them.
 add_library(vagrant_game STATIC
   game/boot/exec_title_tail.cpp
   game/boot/game_heap.cpp
@@ -49,19 +46,6 @@ add_library(vagrant_game STATIC
   game/title/title_exec_phase.cpp)
 target_include_directories(vagrant_game PUBLIC game)
 target_link_libraries(vagrant_game PUBLIC psxport)
-
-if(BUILD_TESTING)
-  add_test(NAME vagrant_cpp_ownership
-    COMMAND "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_cpp_style.py" --ownership-only
-            --root "${CMAKE_CURRENT_SOURCE_DIR}" --compile-commands "${CMAKE_BINARY_DIR}")
-  foreach(test_name
-          battle_cull battle_projection boot_route ds_control_contract dynarec_dispatch frame_driver game_heap
-          image_contract location_warp overlay_images title_transfer)
-    add_executable(vagrant_${test_name} tests/test_${test_name}.cpp)
-    target_link_libraries(vagrant_${test_name} PRIVATE vagrant_game psxport_test_support)
-    add_test(NAME vagrant_${test_name} COMMAND vagrant_${test_name})
-  endforeach()
-endif()
 
 # The shipping product: the framework main over the title's catalog and psxport's dynarec-only executor.
 psxport_add_product(

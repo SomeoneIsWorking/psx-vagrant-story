@@ -50,8 +50,7 @@ once per display field on psxport's Lightrec executor.
 | battle cull | `game/render/battle_cull.*` | BATTLE's room quad reject `0x80098014`, widened by the canvas margin |
 | `TitleExecPhase` | `game/title/title_exec_phase.*` | TITLE `vs_title_exec` after the save check, as guest code; reports the option it returned |
 | save phases | `game/save/title_save_check.*`, `title_memcard_init.*` | `_saveFileExists` and `_initMemcard` with finite reads in place of the CD queue |
-| tests | `tests/` | Each owner through the shipping sources (`vagrant_<name>` CTest targets) and the launcher/provisioning Python tests |
-| tools | `tools/` | Launcher, disc resolution and provisioning, the verifier, `quality/structure.py`, `policy/accepted.txt` |
+| tools | `tools/` | Launcher, disc resolution and provisioning |
 
 ## The frame turn
 

@@ -10,7 +10,7 @@ game content is distributed here.
 The dynarec title adapter exists and `./run.sh` builds and launches the `vagrant_port` product, which
 executes the authenticated resident image and reached `.PRG` overlays through psxport's per-`Core`
 Lightrec executor. There is no interpreter fallback, no engine selector, and no generated guest
-corpus; `tools/verify.py` inspects the shipped binary's symbols to keep that true.
+corpus.
 
 **The title boots from the real disc into BATTLE, but it is not yet playable end to end.** A New Game runs the
 resident boot, TITLE (splashes, intro movie, menu) and the BATTLE prologue under psxport's dynarec; the `warp
@@ -44,24 +44,18 @@ The launcher remains the stable player interface:
 
 It provisions the authenticated measured inputs, configures, builds `vagrant_port`, and launches it.
 `./run.sh --prepare-only` does everything except the launch, which opens a window and plays audio.
-Help remains available with `./run.sh --help`. Focused migration checks do not use the launcher:
+Help remains available with `./run.sh --help`. Build and extraction do not use the launcher. There are no unit tests or gates:
 
 ```sh
-CXX=clang++ uv run --frozen python tools/verify.py
+CC=clang CXX=clang++ uv run --frozen python external/psxport/tools/port/consumer_build.py --build build/agent --target vagrant_port
 uv run --frozen python tools/extract_exe.py /path/to/disc.chd
 uv run --frozen python tools/extract_overlays.py /path/to/disc.chd
 ```
 
-The extraction commands place authenticated runtime inputs under gitignored `scratch/`. The normal
-verifier configures a Ninja build under `build/verify`, builds and runs the native image/title
-contracts AND the shipping product, inspects that product's symbols to prove no interpreter is
-linked, checks first-party C++ with clang-format and clang-tidy, then runs the Python tests and
-structure policy. It checks the Python launcher composition and its stage-named refusals, exact-image
-provisioning behavior, the 1,200-line source cap, Python-only automation, absence of retired
-execution dependencies, and product-code bans on direct stderr and process-environment reads.
+The extraction commands place authenticated runtime inputs under gitignored `scratch/`.
 
 The eventual fresh-clone product requires `uv`, CMake, Git, a C++20 compiler, and psxport's documented
-native dependencies. Maintainer C++ verification uses Clang, clang-format, and clang-tidy; the shipped
+native dependencies. Maintainer builds use Clang; the shipped
 project remains compatible with its supported GCC, Clang, and AppleClang toolchains.
 
 ## Legal

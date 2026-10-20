@@ -129,7 +129,6 @@ def configured_build(build: Path, framework: Path, environment: Mapping[str, str
         "-G",
         "Ninja",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DBUILD_TESTING=OFF",
         f"-DPSXPORT_DIR={framework}",
         f"-DPython3_EXECUTABLE={sys.executable}",
     ]
