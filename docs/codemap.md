@@ -57,7 +57,7 @@ once per display field on psxport's Lightrec executor.
 | Hop | Owner |
 |---|---|
 | product spine | `ProductHost` → `TitleSession`: `admitExecutable` → `registerOverrides` → `startProgram` |
-| field | `FrameDriver::stepFrame`: `logicFrame`, `pad.serviceFrame`, `spu_audio.frame`, `presentation.commit` (paces one field through `GameRuntime::pacePresentation`), `hle.irqPoll` on `PW_IRQ`, `LibDsField::serviceField`, warp, `TitleSplashPhase` + `ResidentPhase::advanceAfterField` |
+| field | `FrameDriver::stepFrame`: `logicFrame`, `pad.serviceFrame`, `spu_audio.frame`, `presentation.commit` (paces one field through `GameRuntime::presentDeadline`), `hle.irqPoll` on `PW_IRQ`, `LibDsField::serviceField`, warp, `TitleSplashPhase` + `ResidentPhase::advanceAfterField` |
 | guest that spans fields | `GuestPhase` over a resumable call; a VSync or a spent turn suspends it, the next field resumes it |
 | presentation | psxport's record path replays the guest's GP0 output; one commit per field, at 30 or 15 fps as the game chooses |
 
