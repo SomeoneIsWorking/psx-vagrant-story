@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug/debug_menu.h"
 #include "game_runtime.h"
 #include "guest_widescreen_projection.h"
 #include "input/pad_buffers.h"
@@ -7,7 +8,6 @@
 #include "stock_libcd.h"
 #include "stock_vsync.h"
 
-#include <cstdio>
 #include <memory>
 #include <span>
 
@@ -17,7 +17,7 @@ class Game;
 namespace vagrant {
 
 // Vagrant Story (SLUS_010.40) on Record: the resident boot phases, the stock libetc/libcd/libapi bindings at
-// this executable's addresses, the PadInitDirect buffers and the `warp` command.
+// this executable's addresses, the PadInitDirect buffers and the debug menu.
 class Runtime final : public psx::game::GameRuntime {
 public:
   Runtime();
@@ -34,8 +34,9 @@ public:
   // The canvas holds the margins and BATTLE's culls widen what is drawn; the projection word is gameplay state.
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
 
-  // `warp <save point>`.
-  bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
+  const psx::game::TitleDebugMenu &debugMenu() const override {
+    return debugMenu_;
+  }
   // The guest-leg producer census beside the framework's run-end report.
   void reportRun(Core &core) const override;
 
@@ -52,6 +53,7 @@ private:
   psx::hle::StockDmaCallbacks dmaCallbacks_;
   PadBuffers pad_;
   psx::present::GuestWidescreenProjection widescreen_;
+  DebugMenu debugMenu_;
 };
 
 } // namespace vagrant

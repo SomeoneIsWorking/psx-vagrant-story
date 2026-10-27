@@ -21,15 +21,7 @@ LocationWarp::Target LocationWarp::target(std::size_t index) {
 LocationWarp::LocationWarp(Call4 call) : call_(call) {
 }
 
-std::string LocationWarp::arm(const psx::debug::CommandArgs &args) {
-  if (args.size() < 2) {
-    return lucent::format("usage: warp <save point 0..{}>", kSavePoints.size() - 1);
-  }
-  const std::optional<std::uint32_t> parsed = args.number(1);
-  if (!parsed || *parsed >= kSavePoints.size()) {
-    return lucent::format("refused: {} is not a save point (0..{})", args.word(1), kSavePoints.size() - 1);
-  }
-  const std::size_t index = *parsed;
+std::string LocationWarp::arm(std::size_t index) {
   armed_ = index;
   return lucent::format("ok: warp armed for save point {} (location {})", index, target(index).location);
 }
