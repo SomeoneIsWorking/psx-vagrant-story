@@ -31,6 +31,7 @@ once per display field on psxport's Lightrec executor.
 | `vagrant::Runtime` | `game/runtime/runtime.*` | The `GameRuntime`: header check and resident publication (`admitExecutable`), `startProgram` into `ResidentPhase`, `StockVSync`/`StockLibcd`/`StockDmaCallbacks` bound at this executable's addresses, `CD_cw`, `deliverPad`, Record, the widescreen policy, the `warp` command, the run-end OT census |
 | `vagrant::Session`, `session(core)` | `game/runtime/session.*` | Per-Core owners: overlay residency, libds field, resident/TITLE/save phases, the exec tail, BATTLE projection |
 | `vagrant::FrameDriver` | `game/frame/frame_driver.*` | One display field: input, audio, the one `presentation.commit` (which paces and delivers the field), CD IRQ poll, libds field, an armed warp, then the phases resume |
+| `vagrant::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): `warp <save point>` |
 | `LocationWarp` | `game/frame/location_warp.*` | `warp <save point>`: BATTLE's location transition `func_8007C694`, called as the Teleportation spell calls it |
 | facts | `game/frame/vsync_facts.h` | libetc `VSync` and the field counter it polls |
 | `ResidentPhase` | `game/boot/resident_phase.*` | The resident bootstrap and TITLE reinitialisation as host states, one per retail VSync; hands TITLE and the `vs_main_execTitle` tail to suspended guest calls |
@@ -70,7 +71,7 @@ once per display field on psxport's Lightrec executor.
 | libds | `LibDsField` per field; `DsControlB` native |
 | memory card | `TitleSaveCheck` → `TitleMemcardInit`; psxport libcard HLE delivers the card events |
 | widescreen | `Runtime::guestWidescreenProjection` widens the record canvas; `0x8005E248` is never written; `battle_cull` admits the margins |
-| warp | `titleCommand("warp")` → `FrameDriver::armWarp` → `LocationWarp::apply` at a BATTLE VSync field |
+| warp | `DebugMenu` (`game/debug/debug_menu.*`, psxport `TitleDebugMenu`) → `FrameDriver::armWarp` → `LocationWarp::apply` at a BATTLE VSync field |
 | run report | `Runtime::reportRun` |
 
 ## Where does it go?

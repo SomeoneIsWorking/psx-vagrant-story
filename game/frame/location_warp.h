@@ -1,7 +1,5 @@
 #pragma once
 
-#include "command_args.h"
-
 #include <array>
 #include <cstdint>
 #include <optional>
@@ -44,8 +42,8 @@ public:
 
   explicit LocationWarp(Call4 call);
 
-  // The returned text answers the client.
-  std::string arm(const psx::debug::CommandArgs &args);
+  // Arms save point `index` (below kSavePoints.size()); the returned text answers the client.
+  std::string arm(std::size_t index);
   bool armed() const {
     return armed_.has_value();
   }

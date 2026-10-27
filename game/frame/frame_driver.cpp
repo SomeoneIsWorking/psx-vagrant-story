@@ -63,8 +63,8 @@ void FrameDriver::requireServices(const Services &services) {
   std::abort();
 }
 
-std::string FrameDriver::armWarp(const psx::debug::CommandArgs &args) {
-  return warp_.arm(args);
+std::string FrameDriver::armWarp(std::size_t savePoint) {
+  return warp_.arm(savePoint);
 }
 
 void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {

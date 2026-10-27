@@ -15,7 +15,6 @@
 #include <lucent/log.h>
 
 #include <cstdlib>
-#include <cstring>
 #include <iomanip>
 #include <sstream>
 
@@ -114,14 +113,6 @@ void Runtime::deliverPad(Core &core, const psx::input::PadDelivery &delivery) {
 
 const psx::present::GuestWidescreenProjection *Runtime::guestWidescreenProjection() const {
   return &widescreen_;
-}
-
-bool Runtime::titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) {
-  if (std::strcmp(input.command, "warp") != 0) {
-    return false;
-  }
-  std::fprintf(reply, "%s\n", core.game->frameDriverAs<FrameDriver>().armWarp(input.args).c_str());
-  return true;
 }
 
 void Runtime::reportRun(Core &core) const {

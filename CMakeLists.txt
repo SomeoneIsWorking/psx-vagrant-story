@@ -31,6 +31,7 @@ add_library(vagrant_game STATIC
   game/execution/guest_phase.cpp
   game/execution/native_owners.cpp
   game/frame/frame_driver.cpp
+  game/debug/debug_menu.cpp
   game/frame/location_warp.cpp
   game/images/battle_transfer.cpp
   game/images/overlay_images.cpp
