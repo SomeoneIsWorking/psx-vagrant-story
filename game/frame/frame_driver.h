@@ -11,8 +11,8 @@ class Game;
 
 namespace vagrant {
 
-// One display field: input, audio, the one paced presentation commit, the libds field service, an armed
-// warp, then the resident/TITLE/BATTLE phases resume and draw what the next field commits.
+// One guest frame: input, audio per field, the one paced presentation commit of the fields the guest's last VSync(n)
+// spans, the libds field service, an armed warp, then the resident/TITLE/BATTLE phases resume to their next wait.
 class FrameDriver final : public psx::game::FrameDriver {
 public:
   // The field's work as replaceable steps, so a test drives the shipping stepFrame body.
@@ -21,7 +21,7 @@ public:
 
     FieldService input = nullptr;
     FieldService audio = nullptr;
-    FieldService present = nullptr;
+    void (*present)(Core &, std::uint32_t fields) = nullptr;
     FieldService libDs = nullptr;
     FieldService resumeResident = nullptr;
     LocationWarp::Call4 call4 = nullptr;
