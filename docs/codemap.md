@@ -9,6 +9,8 @@ Product path: `run.sh` → `tools/run.py` (provision, build) → the framework m
 `vagrant::Runtime` (`admitExecutable`, `registerOverrides`, `startProgram`) → `vagrant::FrameDriver::stepFrame`
 once per display field on psxport's Lightrec executor.
 
+Frame loop: not owned. Each step resumes the resident/TITLE/BATTLE phases until a guest VSync `0x8001F6C4` (the frame wait in `vs_main_gametimeUpdate` `0x8004261C`), one field per step (issue 0054).
+
 ## Placement rules
 
 - Everything is in namespace `vagrant` (sub-namespaces `cd`, `dynarec`, `heap`, `resident`, `sync`, `pad`, … for
