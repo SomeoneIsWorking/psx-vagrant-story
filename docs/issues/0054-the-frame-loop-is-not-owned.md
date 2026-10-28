@@ -10,3 +10,4 @@ The workspace rule (psxport `docs/workspace/WORKSPACE.md`, "Each title owns its 
 
 ## What blocks it
 VSync has 27 call sites in 19 functions; the phases' update and draw run inside overlay code that waits through `0x8004261C`. Next: own `vs_main_gametimeUpdate`'s wait as the driver's field count and drive the phase updates.
+The converted driver counts `Timing::vsyncFields` of the loop's own n at the replaced wait (psxport `docs/presentation.md`, Frame fence and pacing), so an overrunning frame keeps its VBlanks, audio and fields on the guest clock's grid; it is done in that conversion, not as a separate step on the current one-field answer.
