@@ -19,9 +19,8 @@ void serviceInput(Core &core) {
   core.game->pad.serviceFrame();
 }
 
-// One stepFrame is one guest field; the commit waits for it and delivers it.
-void present(Core &core) {
-  core.game->presentation.commit(&core, 1);
+void present(Core &core, std::uint32_t fields) {
+  core.game->presentation.commit(&core, static_cast<int>(fields));
 }
 
 void serviceLibDs(Core &core) {
@@ -73,10 +72,15 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   game_.timing.frameTick();
   core.rsub.otAttr.beginLogicFrame(frame);
 
+  // The fields of the last step's guest VSync(n) (vs_main_gametimeUpdate passes BATTLE's tick speed), or of a turn
+  // that ran out without one.
+  const std::uint32_t fields = game_.timing.takeStepFields();
   services_.input(core);
-  services_.audio(core);
-  // The guest drew the last field's pass on the device; this is its one presentation.
-  services_.present(core);
+  for (std::uint32_t field = 0; field < fields; ++field) {
+    services_.audio(core);
+  }
+  // The guest drew the last step's pass on the device; this is its one presentation.
+  services_.present(core, fields);
 
   // Service the CD IRQ guest callback at this boundary; not a VBlank delivery.
   if ((core.pending_work & Core::PW_IRQ) != 0) {

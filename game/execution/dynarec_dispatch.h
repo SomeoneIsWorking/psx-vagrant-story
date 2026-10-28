@@ -80,6 +80,7 @@ public:
   ContinuationStep advance() override;
 
 private:
+  Core *core_ = nullptr;
   psx::cpu::ResumableGuestCall call_;
 };
 

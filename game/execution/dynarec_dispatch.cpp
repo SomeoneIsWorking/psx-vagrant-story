@@ -101,11 +101,13 @@ void requireGuestReturn(const psx::cpu::ExecutionResult &result, std::string_vie
 }
 
 void ResumableContinuation::begin(Core &core, std::uint32_t entry, std::string_view owner, std::uint32_t returnPc) {
+  core_ = &core;
   call_.begin(core, owner, psx::cpu::GuestCallSite{entry, returnPc}, psx::cpu::kUnboundedCallTurns);
 }
 
 ContinuationStep ResumableContinuation::advance() {
-  const psx::cpu::CallStep step = call_.advance();
+  // A phase turn ends on the field edge, after the field's CD and libds work.
+  const psx::cpu::CallStep step = call_.advance(std::nullopt, psx::cpu::ExecutionBudget::untilFieldEdge(*core_));
   switch (step.outcome) {
   case psx::cpu::CallOutcome::Returned:
     return {ContinuationStep::Kind::Returned, step.value, step.guestPc, {}};
