@@ -86,7 +86,10 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   if ((core.pending_work & Core::PW_IRQ) != 0) {
     game_.hle.irqPoll(&core);
   }
-  services_.libDs(core);
+  // The libds status tick ran from the guest VBlank callback, once per field.
+  for (std::uint32_t field = 0; field < fields; ++field) {
+    services_.libDs(core);
+  }
 
   if (warp_.armed()) {
     const Session &owners = session(core);

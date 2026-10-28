@@ -27,6 +27,17 @@ Shown unpaced with `PSXPORT_DEBUG=fielddigest,presentseq`:
 Guest RAM hashes match through step 746 and differ from 747, the first turn that is now cut at the field edge; the
 boot shots at 1000 to 4000 differ for the same reason (the intro reaches a given frame at another step).
 
+## Fixed: one guest VBlank and one libds status tick per step
+That pass still ran the guest VBlank handler (element `0x8003FC00`, handler `0x8002BE50`) and
+`LibDsField::serviceField` once per step, so a 2-, 3- or 4-field step lost all but one VBlank: the libetc counter
+`0x80032114` read 3000 at step 3000 after 3002 fields (psxport `scratch/dispatch-cost/review-vs-vcount`). psxport
+`Timing::advanceDisplayFields` now delivers each field's VBlank before latching the next, and the driver runs the libds
+status tick once per field. Same BATTLE route, 18000 steps unpaced (`scratch/dispatch-cost/fix-vs-battle`): the
+counter moves `0x57D5` to `0x66A7` between steps 16010 and 17907, 3794 VBlanks, and the digest boundaries between those
+steps span 3794.0 fields; 0 of 18000 steps off the grid; the shot at 18000 is still `b193d4bd`. The cadence is now
+10132 × 1/1, 7563 × 2/1, 285 × 4/1, 19 × 3/1, one 10/1: BATTLE paces off the counter, so more of its frames wait two
+fields.
+
 ## Left
 - The phases' update and draw still run as guest code inside the overlays; the driver owns the cadence at the replaced
   wait, not the per-frame calls.
