@@ -21,6 +21,14 @@ and 15400, `visible` clear). `LocationWarp::apply` (`game/frame/location_warp.cp
 `func_8007C694` from inside that event, so the transition carries the hidden actor across; the spell is only castable
 in free roam, where actor 0 is already visible.
 
+Traced 2026-10-29 (BATTLE.PRG, rood-reverse and Ghidra): `+8` is skip (bit 0), visible (bit 1), freeze (bit 2),
+written through `func_800A087C`. `func_8007C694` freezes every actor (`func_8006C250`); the room load `func_80089DC0`
+does not touch actor flags, and nothing on the transition path unfreezes them (`func_8006C2A0` runs only from the
+menu/battle fades `func_8006C39C` and `func_8007B410`). The only owner that sets actor 0 visible on entry found so far
+is the actor reset `func_8009D468`, reached from the SHP load `_loadShp` (`0x8009AC84`) through `0x8009AEA0`, which a
+warp to a loaded zone does not run. Which owner unfreezes and shows Ashley after a free-roam Teleportation is not yet
+found.
+
 Proper fix: arm the warp only once the game is in free roam with actor 0 under player control (the prologue's own end,
 or a loaded save), and refuse it during an event, instead of writing the actor's flags. Until then the README's
 free-roam stills are left out; its stills come from the prologue cutscenes.
