@@ -5,6 +5,18 @@ This repository targets the USA PlayStation release of **Vagrant Story**
 [psxport](https://github.com/SomeoneIsWorking/psxport). The player supplies the original disc; no
 game content is distributed here.
 
+## Screenshots
+
+![Ashley Riot seen from behind by torchlight in Duke Bardorba's manor, widescreen](docs/media/manor-ashley.png)
+
+![Ashley and a knight in the manor hall asking "Have you found Sydney?", widescreen](docs/media/manor-hall.png)
+
+![A knight captain ordering his men at a manor window, widescreen](docs/media/manor-knights.png)
+
+![The manor hall at the original 4:3 beside the same frame at 16:9, where columns and windows fill the margins](docs/media/widescreen-comparison.png)
+
+The same frame at the original 4:3 and at 16:9: the room is drawn into the margins, the projection is unchanged.
+
 ## Current status
 
 The dynarec title adapter exists and `./run.sh` builds and launches the `vagrant_port` product, which
