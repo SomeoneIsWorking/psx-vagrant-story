@@ -71,3 +71,7 @@ constant rather than a comment.
   `func_800BB874` scanline effect, which spans 320 px.
 - These culls are screen-space draw decisions; none was found to feed gameplay, but only the room quad reject is
   proven so here.
+- Rain (`0x8008F440`, 2026-10-29, manor courtyard after the prologue): each drop is projected through
+  `0x80041814` and drawn only when its screen x is in (0, 320) (`slti 0x140` at `0x8008F5B4`), so no drop falls in
+  the margins. The draw path also clears the drop's byte `+1` (`0x8008F6CC`), which gates its splash, so widening
+  the test would change which drops splash; the proper fix draws margin drops without touching that byte.
