@@ -5,19 +5,28 @@
 #include "frame/location_warp.h"
 #include "game.h"
 
+#include <lucent/log.h>
+
+#include <vector>
+
 namespace vagrant {
 
 DebugMenu::DebugMenu() {
-  using psx::game::DebugCall;
-  using psx::game::DebugParam;
-  section("Save Point Warp");
-  verb({
-      .name = "warp",
-      .summary = "Teleport to that save point",
-      .params = {DebugParam::integer("save point", 0, LocationWarp::kSavePoints.size() - 1)},
-      .run =
-          [](const DebugCall &call) {
-            call.reply = call.core.game->frameDriverAs<FrameDriver>().armWarp(call.values.u32(0));
+  warp({
+      .levels = {"save point"},
+      .places =
+          [](Core &) {
+            std::vector<psx::game::WarpPlace> points;
+            for (std::size_t point = 0; point < LocationWarp::kSavePoints.size(); ++point) {
+              points.push_back({
+                  .name = lucent::format("save point {}", point),
+                  .arrive =
+                      [point](Core &core) {
+                        return core.game->frameDriverAs<FrameDriver>().armWarp(static_cast<std::uint32_t>(point));
+                      },
+              });
+            }
+            return points;
           },
       .refusal =
           [](Core &core) {

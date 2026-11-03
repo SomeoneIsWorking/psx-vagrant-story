@@ -33,8 +33,8 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
 | `vagrant::Runtime` | `game/runtime/runtime.*` | The `GameRuntime`: header check and resident publication (`admitExecutable`), `startProgram` into `ResidentPhase`, `StockVSync`/`StockLibcd`/`StockDmaCallbacks` bound at this executable's addresses, `CD_cw`, `deliverPad`, Record, the widescreen policy, the `warp` command, the run-end OT census |
 | `vagrant::Session`, `session(core)` | `game/runtime/session.*` | Per-Core owners: overlay residency, libds field, resident/TITLE/save phases, the exec tail, BATTLE projection |
 | `vagrant::FrameDriver` | `game/frame/frame_driver.*` | One guest frame: input, audio per field, the one `presentation.commit` of the last wait's fields, CD IRQ poll, libds field, an armed warp, then the phases resume |
-| `vagrant::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): `warp <save point>` |
-| `LocationWarp` | `game/frame/location_warp.*` | `warp <save point>`: BATTLE's location transition `func_8007C694`, called as the Teleportation spell calls it |
+| `vagrant::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`save point N`) |
+| `LocationWarp` | `game/frame/location_warp.*` | The save point arrival: BATTLE's location transition `func_8007C694`, called as the Teleportation spell calls it |
 | facts | `game/frame/vsync_facts.h` | libetc `VSync` and the field counter it polls |
 | `ResidentPhase` | `game/boot/resident_phase.*` | The resident bootstrap and TITLE reinitialisation as host states, one per retail VSync; hands TITLE and the `vs_main_execTitle` tail to suspended guest calls |
 | `ExecTitleTail` | `game/boot/exec_title_tail.*` | `vs_main_execTitle` after TITLE returns: loading screen, `_loadBattlePrg`, `vs_battle_exec`, one suspended guest call; reports whether it stopped at the guest's VSync |

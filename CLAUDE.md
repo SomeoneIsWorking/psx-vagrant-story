@@ -66,7 +66,7 @@ image with nonzero Lightrec execution, a reached native CD override, reached res
 overrides, one scoped `superCall`, image-generation invalidation and an unchanged-generation
 negative, zero guest-VSync violations, and independent CPU/device-state comparison.
 
-To reach a map, start a New Game (BATTLE is resident from the prologue) and send `warp <save point 0..34>` on
+To reach a map, start a New Game (BATTLE is resident from the prologue) and send `warp save point <0..34>` (`warp ?` lists them) on
 the control channel; `vagrant::LocationWarp` takes it through BATTLE's own location transition at a field
 boundary. Save point 1 currently faults (issue 0052).
 
