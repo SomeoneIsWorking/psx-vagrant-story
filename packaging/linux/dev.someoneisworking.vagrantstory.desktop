@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Vagrant Story
+GenericName=Role-playing game
+Comment=PC-native port of Vagrant Story
+Icon=dev.someoneisworking.vagrantstory
+Terminal=false
+Categories=Game;RolePlaying;
+Keywords=Vagrant Story;PlayStation;RPG;Port;
+StartupNotify=true
