@@ -5,7 +5,7 @@ status: open
 symptom: `warp 1` jumps to 0x004B0001 about 40 fields after the transition and the run aborts
 tags: S013,debug,battle
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-11-04
 ---
 
 Observed: New Game (`4300:tap start 4;4600:tap cross 6;4800:tap circle 6`), then `9000:warp 1`. Those frames were
@@ -24,3 +24,10 @@ Where: `0x8009969C` is in BATTLE.PRG `vs_battle_processObjectDataQueue` (`0x8009
 location's object data reaches the queue malformed (a port CD/load defect) or the warp skips state the spell sets
 first (`func_800735F8` calls `func_800A1108`, `func_8006F4B0` and `vs_battle_setStateFlag(0xB7, 1)` before
 `func_8007C694`). Next step: run the same location from the in-game Teleportation menu, which settles which.
+
+2026-11-04, warp catalogue build (`build/warp`, hidden, unpaced, ires 0, fps60, 4K sink), route above with
+`warp save point 1` at frame 14000, and again with `warp save point 0` at 14000 then `warp save point 1` at 17000
+(`scratch/warp-fix/r1`, `r2`): both log `save point 1: location 15 (zone 9 map 6) at (1, 8) requested`, load the
+room (`reduced/vs_save1.jpg`) and run 3000 more frames without a fault; Ashley is not drawn in either (issue 0055).
+One run on 2026-11-03 armed before the prologue's BATTLE was idle still faulted, at `0x00000001`
+(`scratch/warp/vs/run.log`, 20:14). The fault is not reproduced on demand; it stays open until its route is found.

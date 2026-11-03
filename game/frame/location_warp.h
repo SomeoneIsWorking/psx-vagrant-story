@@ -9,7 +9,7 @@ class Core;
 
 namespace vagrant {
 
-// `warp <save point>`: the Teleportation spell's own route. BATTLE's func_800735F8 calls the location
+// A save-point arrival of the warp catalogue: the Teleportation spell's own route. BATTLE's func_800735F8 calls the location
 // transition func_8007C694(location, x, z, effect 0, speed 8), which starts the screen transition and the
 // ZND/MPD load; the warp makes that call at a field boundary while BATTLE is idle between transitions.
 class LocationWarp {

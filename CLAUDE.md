@@ -68,7 +68,8 @@ negative, zero guest-VSync violations, and independent CPU/device-state comparis
 
 To reach a map, start a New Game (BATTLE is resident from the prologue) and send `warp save point <0..34>` (`warp ?` lists them) on
 the control channel; `vagrant::LocationWarp` takes it through BATTLE's own location transition at a field
-boundary. Save point 1 currently faults (issue 0052).
+boundary. Every save point reached so far is reached from the New Game prologue, which leaves Ashley hidden on arrival
+(issue 0055); save point 1 once faulted at 0x00000001 and has since loaded its map in two runs (issue 0052).
 
 Disc resolution is explicit argument, `PSXPORT_VAGRANT_DISC`, `.env`, then an unambiguous
 repository-root CHD. Validate the resident executable and every loaded overlay. `external/psxport`

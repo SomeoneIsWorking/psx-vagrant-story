@@ -33,7 +33,7 @@ public:
   FrameDriver(Game &game, Services services);
 
   void stepFrame(Core &core, std::uint32_t frame) override;
-  // Arms a `warp <save point>` request; a later field takes it through BATTLE's own location transition.
+  // Arms a save-point arrival; a later field takes it through BATTLE's own location transition.
   std::string armWarp(std::size_t savePoint);
 
 private:
