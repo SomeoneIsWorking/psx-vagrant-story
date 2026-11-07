@@ -77,3 +77,5 @@ The disc image, extracted executable, and overlays remain user-owned and gitigno
 runtime evidence. The shared `go-public` skill's `go_public.py` (under
 `~/repo/shared/re-harness/tools/`, not vendored here) audits repository history for game-derived
 content and machine-specific paths.
+
+Built with AI assistance (Claude and other LLMs).
