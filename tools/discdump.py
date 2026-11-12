@@ -2,8 +2,8 @@
 """discdump.py — locate (and, if needed, build) the framework's `discdump` tool, and read a disc.
 
 `discdump` is psxport's ISO9660/CHD reader (external/psxport/tools/discdump.cpp); all disc reads go
-through it. Built from $PSXPORT_DIR (default external/psxport) under scratch/build/psxport;
-$PSXPORT_DISCDUMP overrides with a prebuilt binary. Listings are never cached.
+through it. psxport's launcher builds it into build/player-tools; $PSXPORT_DISCDUMP overrides
+with a prebuilt binary. Listings are never cached.
 """
 
 import os
@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_BUILD = Path(ROOT) / "scratch/build/psxport"
 
 
 def psxport_dir():
@@ -22,7 +21,7 @@ def psxport_dir():
     return d
 
 
-def find(build_if_missing=True):
+def find():
     """Return an absolute path to a usable `discdump`, or raise SystemExit(2) saying why not."""
     override = os.environ.get("PSXPORT_DISCDUMP")
     if override:
@@ -35,66 +34,21 @@ def find(build_if_missing=True):
         return os.path.abspath(override)
 
     px = psxport_dir()
-    if not os.path.isfile(os.path.join(px, "cmake", "psxport.cmake")):
+    if not os.path.isfile(os.path.join(px, "tools", "port", "launcher.py")):
         print(
-            f"[discdump] PSXPORT_DIR={px} is not a psxport checkout — run "
-            "`git submodule update --init external/psxport`, or set PSXPORT_DIR.",
+            f"[discdump] PSXPORT_DIR={px} is not a psxport checkout; set PSXPORT_DIR.",
             file=sys.stderr,
         )
         raise SystemExit(2)
+    sys.path.insert(0, os.path.join(px, "tools"))
+    from automation.process import ToolError
+    from port.launcher import build_discdump
 
-    build_dir = Path(os.environ.get("PSXPORT_DISCDUMP_BUILD", DEFAULT_BUILD))
-    for name in ("discdump", "discdump.exe"):
-        cand = build_dir / "tools" / name
-        if os.access(cand, os.X_OK):
-            return str(cand.resolve())
-    if not build_if_missing:
-        print(f"[discdump] not built under {build_dir}/tools", file=sys.stderr)
-        raise SystemExit(2)
-
-    return build(Path(px), build_dir)
-
-
-def configure_command(psxport, build_dir, cc, cxx, python):
-    """Return the test-free player configure for the authoritative disc reader."""
-    return [
-        "cmake",
-        "-S",
-        str(psxport),
-        "-B",
-        str(build_dir),
-        "-DCMAKE_BUILD_TYPE=Release",
-        f"-DCMAKE_C_COMPILER={cc}",
-        f"-DCMAKE_CXX_COMPILER={cxx}",
-        f"-DPython3_EXECUTABLE={python}",
-    ]
-
-
-def build(psxport=None, build_dir=None, cc=None, cxx=None, python=None):
-    """Incrementally build the authoritative disc reader with the selected toolchain."""
-    psxport = Path(psxport or psxport_dir()).resolve()
-    build_dir = Path(
-        build_dir or os.environ.get("PSXPORT_DISCDUMP_BUILD", DEFAULT_BUILD)
-    )
-    cc = cc or os.environ.get("CC", "cc")
-    cxx = cxx or os.environ.get("CXX", "c++")
-    python = python or sys.executable
-
-    print(f"[discdump] building it from {psxport} (incremental)…", file=sys.stderr)
-    jobs = str(os.cpu_count() or 4)
-    for cmd in (
-        configure_command(psxport, build_dir, cc, cxx, python),
-        ["cmake", "--build", str(build_dir), "-j", jobs, "--target", "discdump"],
-    ):
-        r = subprocess.run(cmd, stdout=subprocess.DEVNULL, check=False)
-        if r.returncode != 0:
-            print(f"[discdump] FAILED: {' '.join(cmd)}", file=sys.stderr)
-            raise SystemExit(2)
-    for name in ("discdump", "discdump.exe"):
-        candidate = build_dir / "tools" / name
-        if os.access(candidate, os.X_OK):
-            return str(candidate.resolve())
-    raise SystemExit(f"[discdump] build produced no executable under {build_dir}/tools")
+    try:
+        return str(build_discdump(Path(ROOT), os.environ))
+    except ToolError as error:
+        print(f"[discdump] {error}", file=sys.stderr)
+        raise SystemExit(2) from error
 
 
 def listing(disc, dd=None):
