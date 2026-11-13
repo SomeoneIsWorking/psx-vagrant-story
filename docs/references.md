@@ -96,8 +96,8 @@ decomp here and do not depend on its toolchain; it is a read-only reference tree
 - **Data Crystal's Vagrant Story page** — format notes; its RAM map subpage covers prototype builds,
   not `SLUS_010.40`. The decomp's README credits it. Unverified here; treat any address from it
   exactly like one from the decomp.
-- **decomp.dev** lists this project at 50.12% on 2026-10-13 against 62.63% in the 2026-08-12 survey;
-  upstream added the EFFECT and SMALL configs in between, so the two figures are not like-for-like.
+- **decomp.dev** lists this project at 96.05% decompiled, 75.04% fully linked, at upstream `138eec6c`
+  (2026-11-13); earlier figures (62.63% 2026-08-12, 50.12% 2026-10-13) counted a growing set of configs.
   psxport itself cannot report there — our axis is RAM parity, not object identity — see
   `external/psxport/docs/prior-art.md`.
 - The full candidate table, including what was found and rejected, is `docs/prior-art.md`.
