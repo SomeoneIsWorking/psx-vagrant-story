@@ -39,3 +39,6 @@ __pycache__/
 # Editor / OS noise
 compile_commands.json
 .DS_Store
+
+# long-lived ignored inputs and derived assets (Ghidra projects, decompiled output)
+env-assets/
