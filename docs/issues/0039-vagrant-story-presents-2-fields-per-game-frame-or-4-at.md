@@ -49,8 +49,8 @@ The public setter `func_8007C36C` makes the domain closed and provable:
 ```
 
 **It admits only 2 and 4.** There is no path by which the global can hold 1, and 1 could not pace the
-game anyway because `VSync(1)` does not wait. So the answer is 30 or 15 fps, and 60 fps is
-structurally impossible — not merely unobserved.
+game anyway because `VSync(1)` does not wait. So the guest runs at 30 or 15 fps and never at
+60 Hz; 60 fps output comes from interpolation over that logic.
 
 ## The 2-vs-4 choice is PRESENTATION
 

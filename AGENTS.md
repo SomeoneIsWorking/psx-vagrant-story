@@ -40,8 +40,8 @@ bytes.
 - The guest's 4:3 publication goes through four resident SDK leaves: `0x80041540` (`SetGeomOffset`),
   `0x80041534` (`SetGeomScreen`), `0x8002B374` (`SetDefDrawEnv`) and `0x8002B434` (`SetDefDispEnv`).
   Each is observed after it runs, never replaced.
-- The title presents 2 fields per game frame (30 fps) or 4 (15 fps), chosen at run time. 60 fps is
-  structurally impossible, so interpolation is a presentation decision over matching source geometry.
+- The title presents 2 fields per game frame (30 fps) or 4 (15 fps), chosen at run time; the guest never
+  runs at 60 Hz, so 60 fps is interpolation over its 30/15 fps logic (replay-interpolation skill).
 - The boot's display publication is 320x224 at `0x8005E18C`, set by `_initScreen` at `0x80042054`.
   BATTLE's overlay rectangle at `0x8005DFD4` is zero BSS until BATTLE.PRG loads and is not a
   cross-check target during boot.
