@@ -40,8 +40,7 @@ inline constexpr std::int32_t kBattleClipLeftX = 0;
 inline constexpr std::int32_t kBattleClipRightX = 320;
 inline constexpr std::int32_t kBattleClipWidth = 320;
 inline constexpr std::int32_t kBattleClipHeight = 224;
-// func_8007629C, the sole BATTLE field presenter: it loads the literals 160 and 112 before `jal 0x80041540`.
-inline constexpr std::uint32_t kBattleFieldPresenter = 0x8007629Cu;
+// The SetGeomOffset literals battle_draw::kPresent loads before `jal 0x80041540`.
 inline constexpr std::int32_t kBattlePresenterCentreX = 160;
 inline constexpr std::int32_t kBattlePresenterCentreY = 112;
 // func_8008A3A0, the dynamic-OT submit that hands the field to the presenter.

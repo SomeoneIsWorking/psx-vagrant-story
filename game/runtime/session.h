@@ -3,6 +3,7 @@
 #include "boot/exec_title_tail.h"
 #include "boot/resident_phase.h"
 #include "cd/libds_field.h"
+#include "frame/draw_replay.h"
 #include "game_runtime.h"
 #include "images/overlay_images.h"
 #include "render/battle_projection.h"
@@ -34,6 +35,7 @@ public:
   TitleSaveCheck titleSaveCheck{};
   TitleExecPhase titleExec{};
   ExecTitleTail execTitleTail{};
+  DrawReplay drawReplay;
 };
 
 // The session of the Game `core` belongs to; aborts when it has none.

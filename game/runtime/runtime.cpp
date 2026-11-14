@@ -115,6 +115,14 @@ const psx::present::GuestWidescreenProjection *Runtime::guestWidescreenProjectio
   return &widescreen_;
 }
 
+psx::present::ReplayFrame *Runtime::replayFrame(Core &core) {
+  return &session(core).drawReplay.frame();
+}
+
+bool Runtime::sealedFrameIsCut(Core &core) const {
+  return session(core).drawReplay.cuts().takeSealed();
+}
+
 void Runtime::reportRun(Core &core) const {
   lucent::info("vagrant-boot",
                "guest-leg producer census: {} OT span(s), {} overflow(s); zero means the guest submitted no primitive",

@@ -36,6 +36,10 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
 | `vagrant::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`save point N`) |
 | `LocationWarp` | `game/frame/location_warp.*` | The save point arrival: BATTLE's location transition `func_8007C694`, called as the Teleportation spell calls it |
 | facts | `game/frame/vsync_facts.h` | libetc `VSync` and the field counter it polls |
+| `DrawReplay` | `game/frame/draw_replay.*` | BATTLE's replay frame: the camera track, sampled at the draw tail's entry, and the texture animation withheld from in-betweens |
+| `DrawSection` | `game/frame/draw_section.*` | The draw tail `func_80069D78` to the present `func_8007629C`, whose DrawOTag follows its field wait |
+| `ShotCuts` | `game/frame/shot_cuts.h` | The event camera's placements and follow-camera switches, carried to the record that draws them as cuts |
+| facts | `game/frame/battle_draw_facts.h` | The draw tail, the present, the texture animation step, `vs_scratch.camera` and the camera cut sites |
 | `ResidentPhase` | `game/boot/resident_phase.*` | The resident bootstrap and TITLE reinitialisation as host states, one per retail VSync; hands TITLE and the `vs_main_execTitle` tail to suspended guest calls |
 | `ExecTitleTail` | `game/boot/exec_title_tail.*` | `vs_main_execTitle` after TITLE returns: loading screen, `_loadBattlePrg`, `vs_battle_exec`, one suspended guest call; reports whether it stopped at the guest's VSync |
 | boot helpers | `game/boot/game_heap.*`, `game_time.*`, `guest_rect.*` | `vs_main_initHeap`, the game-time tick, a guest RECT |

@@ -6,6 +6,7 @@
 #include "cd/ds_control.h"
 #include "core.h"
 #include "execution/dynarec_dispatch.h"
+#include "frame/draw_replay.h"
 #include "images/battle_transfer.h"
 #include "render/battle_cull.h"
 #include "render/battle_projection.h"
@@ -79,6 +80,10 @@ void loadBattleProgramsOverride(Core *core) {
     lucent::info("vagrant-owners", "BATTLE.PRG and INITBTL.PRG loaded as published images");
     if (!battle_cull::installBattleCull(*core)) {
       lucent::error("vagrant-owners", "BATTLE room quad reject was not installed");
+      std::abort();
+    }
+    if (!DrawReplay::install(*core)) {
+      lucent::error("vagrant-owners", "BATTLE draw tail replay was not installed");
       std::abort();
     }
     return;

@@ -34,6 +34,14 @@ public:
   // The canvas holds the margins and BATTLE's culls widen what is drawn; the projection word is gameplay state.
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
 
+  // BATTLE's logic runs at 30 or 15 fps; its draw tail is replayed between frames.
+  bool interpolates() const override {
+    return true;
+  }
+  psx::present::ReplayFrame *replayFrame(Core &core) override;
+  // A camera the event script placed without a move, or the switch to the follow camera.
+  bool sealedFrameIsCut(Core &core) const override;
+
   const psx::game::TitleDebugMenu &debugMenu() const override {
     return debugMenu_;
   }
