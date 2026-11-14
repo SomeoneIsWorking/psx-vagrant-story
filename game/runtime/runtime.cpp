@@ -128,6 +128,7 @@ void Runtime::reportRun(Core &core) const {
                "guest-leg producer census: {} OT span(s), {} overflow(s); zero means the guest submitted no primitive",
                core.rsub.otAttr.spanCount(),
                core.rsub.otAttr.spanOverflow());
+  session(core).drawReplay.actors().report();
 }
 
 } // namespace vagrant

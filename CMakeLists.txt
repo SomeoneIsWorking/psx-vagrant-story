@@ -30,6 +30,7 @@ add_library(vagrant_game STATIC
   game/execution/dynarec_dispatch.cpp
   game/execution/guest_phase.cpp
   game/execution/native_owners.cpp
+  game/frame/actor_motion.cpp
   game/frame/draw_replay.cpp
   game/frame/draw_section.cpp
   game/frame/frame_driver.cpp

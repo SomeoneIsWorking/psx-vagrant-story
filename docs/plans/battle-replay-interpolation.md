@@ -30,6 +30,15 @@ One iteration of its inner loop is one frame:
   (`angles.vz`) as a 12-bit angle; the sync derives the other angles.
 - The texture animation step `0x80091B04` is the real frame's work (its `MoveImage` uploads the next texels), so
   replays skip it.
+- Models (`game/frame/actor_motion`): the model pass `func_800AEF94` steps each model's animation into its joint
+  angles (+0x704, 8-byte rows of doubled 12-bit angles), its scripted movement and turn, and the root offset at
+  `0x1F8003B0`, then `func_800B07DC` builds the root transform. Each model's position (+0x1C), angles (+0x24), root
+  offset and joint angles are recorded there in the real pass and, in a replay, blended from the last real pass's to
+  the replay's own (angles the short way, joints on a 13-bit ring), paired by model address while its shape (+0x68) and
+  joint count are unchanged. An attachment's second call in one pass follows the first. On the New Game intro (pad
+  replay, fences 2200-2500) 8007 model draws blended and 12 were drawn as now; in-betweens sit at a median 0.51 of
+  the way between their neighbours, the knight's walk and spear sway step through them with whole joints, and a paced
+  run shows 1 missed vblank in 5303 presents.
 - Cuts (`game/frame/shot_cuts.h`): the event camera command `func_800BC2E8` kind 1 copies its target into
   `cameraPos` with no move, and `func_800BBE04` switches `vs_battle_applyCameraState` to the follow camera. Either
   declares a cut, latched at the next draw tail and reported for the record that walks that tail's chain. On the
@@ -41,8 +50,8 @@ One iteration of its inner loop is one frame:
   sound path's `DisableEvent` inside the tail.
 
 ## Open
-- Actors, their poses and effects draw at the newer tick in every in-between, so characters still move at the
-  logic rate. Next: actor position and rotation tracks, then the pose (frame and progress as a unit).
+- Effects, billboards and the objects of the pass's second loop (`D_800F45E0`, `func_800B1A68`) draw at the newer
+  tick. A model the logic places without a move (a warp, a respawn) blends across the jump; it needs its declaration.
 - Other camera placements outside the event camera (a room change, `func_800BBE10`'s origin change) are not
   declared.
 - Leak proof: with fps60 off the field digest logs once per 2-field step, 13.6k ticks past the boundary, and with

@@ -35,6 +35,18 @@ void drawTailOverride(Core *core) {
   dynarec::callOriginalToReturn(*core, battle_draw::kDrawTail, "Vagrant battle draw tail");
 }
 
+void modelPassOverride(Core *core) {
+  DrawReplay &owner = session(*core).drawReplay;
+  owner.actors().openPass(owner.frame().replaying());
+  dynarec::callOriginalToReturn(*core, battle_draw::kModelPass, "Vagrant battle model pass");
+  owner.actors().closePass();
+}
+
+void rootTransformOverride(Core *core) {
+  session(*core).drawReplay.actors().atRootTransform(*core, core->r[psx::cpu::kA0]);
+  dynarec::callOriginalToReturn(*core, battle_draw::kRootTransform, "Vagrant model root transform");
+}
+
 // A replay declares nothing: it redraws a frame the logic already ran.
 void declareCut(Core &core, const char *site) {
   DrawReplay &owner = session(core).drawReplay;
@@ -76,7 +88,10 @@ bool DrawReplay::install(Core &core) {
          dynarec::installNativeOverride(
              core, battle_draw::kCameraCommand, "Vagrant event camera command", cameraCommandOverride) &&
          dynarec::installNativeOverride(
-             core, battle_draw::kFollowCameraSwitch, "Vagrant follow camera switch", followCameraSwitchOverride);
+             core, battle_draw::kFollowCameraSwitch, "Vagrant follow camera switch", followCameraSwitchOverride) &&
+         dynarec::installNativeOverride(
+             core, battle_draw::kRootTransform, "Vagrant model root transform", rootTransformOverride) &&
+         dynarec::installNativeOverride(core, battle_draw::kModelPass, "Vagrant battle model pass", modelPassOverride);
 }
 
 } // namespace vagrant
