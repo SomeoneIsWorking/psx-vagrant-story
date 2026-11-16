@@ -1,7 +1,7 @@
-# Vagrant Story native/dynarec port
+# Vagrant Story native/interpreter port
 
 This repository targets the USA PlayStation release of **Vagrant Story**
-(`SLUS_010.40`) as a native/dynarec hybrid built on
+(`SLUS_010.40`) as a native/interpreter hybrid built on
 [psxport](https://github.com/SomeoneIsWorking/psxport). The player supplies the original disc; no
 game content is distributed here.
 
@@ -19,13 +19,14 @@ The same frame at the original 4:3 and at 16:9: the room is drawn into the margi
 
 ## Current status
 
-The dynarec title adapter exists and `./run.sh` builds and launches the `vagrant_port` product, which
-executes the authenticated resident image and reached `.PRG` overlays through psxport's per-`Core`
-Lightrec executor. There is no interpreter fallback, no engine selector, and no generated guest
-corpus.
+The title adapter (`vagrant::dynarec`) exists and `./run.sh` builds and launches the `vagrant_port`
+product, which executes the authenticated resident image and reached `.PRG` overlays on psxport's
+per-`Core` interpreter (`GuestExecutor`). There is no recompiler, no fallback tier, no engine selector,
+and no generated guest corpus.
 
-**The title boots from the real disc into BATTLE, but it is not yet playable end to end.** A New Game runs the
-resident boot, TITLE (splashes, intro movie, menu) and the BATTLE prologue under psxport's dynarec; the `warp
+**The title is not yet playable end to end, and has not been rerun on the interpreter.** On the recompiler the
+interpreter replaced, a New Game ran the resident boot, TITLE (splashes, intro movie, menu) and the BATTLE
+prologue; the `warp
 <save point>` control command loads a map into free roam through the game's own location transition. Later
 overlays, saves and progression are unverified; save point 1 faults (`docs/issues/0052`).
 
@@ -36,12 +37,12 @@ for open defects, and `docs/re-frontier.md` for the ordered binary evidence chai
 
 ## Intended product
 
-- Execute every non-native guest instruction on demand through psxport's per-Core Lightrec runtime.
-- Never link, select, or fall back to an interpreter in gameplay; a separate test oracle is allowed.
-- Preserve authenticated resident/overlay image identity and invalidate translated blocks when a
-  reused `.PRG` slot changes generation.
+- Execute every non-native guest instruction on psxport's per-`Core` interpreter (`GuestExecutor`).
+- Never link or select a second engine in gameplay; a separate test oracle is allowed.
+- Preserve authenticated resident/overlay image identity and invalidate stale dispatch decisions when
+  a reused `.PRG` slot changes generation.
 - Keep deliberately native CD, save, input, timing, and rendering owners behind image-scoped
-  overrides with original calls routed through the dynarec.
+  overrides with original calls routed through the interpreter.
 - Reach representative interactive BATTLE gameplay before claiming compatibility.
 - Add semantic native world rendering, true widescreen, and presentation interpolation only after
   the faithful baseline is verified.
