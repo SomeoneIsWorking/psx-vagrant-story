@@ -74,6 +74,15 @@ through `_loadTitlePrg` `0x80041F34`, which nothing published, so BATTLE stayed 
 movie; `_loadTitlePrg` is now owned and publishes TITLE (`readAndLoadTitle`), retiring BATTLE's generation. After:
 the movie is pillarboxed at frames 800, 1000 and 9000 (`scratch/caps/after/splash2`, `after/route3/f9000.png`).
 
+## BATTLE's GIM cards
+
+The prologue staff credits are BATTLE GIM cards (`loadGim`, script opcode 0x17, drawn by `func_800CCA90`): a picture
+in the centre and, when the card has a background colour, tiles of that colour over the rest of the 320x240 screen
+(`func_800CBBCC`). Nothing draws beside them, so at 16:9 the margins showed other VRAM (`scratch/caps/after/route4/f15600.png`,
+margin luma up to 204). `game/render/battle_cards.cpp` reports a visible, loaded, drawn card with a background
+colour and `AspectPolicy` holds 4:3 while it is up; after, the same frame is pillarboxed with both margins at luma 0
+(`after/repro/f15600.png`), and the world on either side of the card (f15500, f15700) stays 16:9.
+
 ## Sky dome, flat backdrop and rain
 
 The room backdrop `0x8008EC48` (rood-reverse upstream `146C.c`) draws one of a tiled picture, a flat fill (all five
@@ -90,7 +99,6 @@ falls in the margins, never touching the drop's state; the GTE state is restored
 
 ## What remains
 
-- The prologue staff credits (f15600 on `after/route4`) are a 320-wide card with other VRAM beside it at 16:9.
 - Not widened: the tiled 2D backdrop `func_8009147C`, the scanline effect `func_800BB874`, particles other than
   rain, and the HUD (fixed layout by G003).
 - These culls are screen-space draw decisions; none was found to feed gameplay.

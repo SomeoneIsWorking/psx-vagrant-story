@@ -10,6 +10,7 @@
 #include "frame/vsync_facts.h"
 #include "game.h"
 #include "platform_hle.h"
+#include "render/battle_cards.h"
 #include "runtime/session.h"
 
 #include <lucent/log.h>
@@ -112,7 +113,7 @@ void Runtime::deliverPad(Core &core, const psx::input::PadDelivery &delivery) {
 }
 
 psx::present::PresentationAspect AspectPolicy::presentationAspect(const Core &core) const {
-  if (!session(core).overlayImages.resident(OverlayKind::Battle).has_value()) {
+  if (!session(core).overlayImages.resident(OverlayKind::Battle).has_value() || battle_cards::opaqueCardShown(core)) {
     return psx::present::PresentationAspect::Standard4x3;
   }
   return psx::present::GuestWidescreenProjection::presentationAspect(core);

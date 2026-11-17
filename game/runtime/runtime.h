@@ -16,8 +16,8 @@ class Game;
 
 namespace vagrant {
 
-// TITLE's splashes, movie and menu and the loading card are 320-wide pictures with VRAM beside them; only BATTLE draws
-// into the canvas margins.
+// TITLE's splashes, movie and menu, the loading card and BATTLE's GIM cards are 320-wide pictures with VRAM beside
+// them; only BATTLE's world draws into the canvas margins.
 class AspectPolicy final : public psx::present::GuestWidescreenProjection {
 public:
   psx::present::PresentationAspect presentationAspect(const Core &core) const override;

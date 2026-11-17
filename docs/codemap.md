@@ -57,6 +57,7 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
 | `TitleSplashPhase` | `game/render/title_splash.*` | The publisher/developer splash, one host field per retail VSync |
 | `BattleProjectionOwner` | `game/render/battle_projection.*` | Observes the four resident SDK leaves that publish the 4:3 viewport |
 | battle cull | `game/render/battle_cull.*` | BATTLE's room quad reject `0x80098014`, widened by the canvas margin |
+| battle cards | `game/render/battle_cards.*` | Reads BATTLE's GIM cards (`gims` `0x800EB9BC`): an opaque card on screen holds the aspect at 4:3 |
 | battle sky | `game/render/battle_sky.*` | BATTLE's sky dome `0x8009820C` (native, triangle reject widened) and the flat backdrop fill in `0x8008EC48`, spanning the canvas margins |
 | battle rain | `game/render/battle_rain.*` | Wraps BATTLE's rain pass `0x8008F440`: the drops the retail test leaves out in the margins, drawn from the pass's inputs |
 | `TitleExecPhase` | `game/title/title_exec_phase.*` | TITLE `vs_title_exec` after the save check, as guest code; reports the option it returned |
