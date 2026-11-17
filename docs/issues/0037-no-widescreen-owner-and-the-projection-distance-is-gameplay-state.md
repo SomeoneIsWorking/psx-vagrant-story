@@ -83,7 +83,7 @@ margin luma up to 204). `game/render/battle_cards.cpp` reports a visible, loaded
 colour and `AspectPolicy` holds 4:3 while it is up; after, the same frame is pillarboxed with both margins at luma 0
 (`after/repro/f15600.png`), and the world on either side of the card (f15500, f15700) stays 16:9.
 
-## Sky dome, flat backdrop and rain
+## Sky dome and flat backdrop
 
 The room backdrop `0x8008EC48` (rood-reverse upstream `146C.c`) draws one of a tiled picture, a flat fill (all five
 room sky colours equal) or the sky dome `0x8009820C` (upstream `2EA3C.s`): 34 vertices through `rtv0tr`, then 64
@@ -93,12 +93,16 @@ box from `battle_cull::widenedBox`; the flat fill's POLY_FT4 is moved to the wid
 4:3 both are the retail bytes. On the manor's establishing shot the dome now fills both margins
 (`after/route3/f12860.png`), where before only the triangles that straddled the 4:3 edge showed.
 
-Rain `0x8008F440`: `game/render/battle_rain.cpp` snapshots each falling drop before the pass, runs it, then repeats
-its move and projection from that snapshot and draws as a LINE_G2 plus its tpage (`insertTPage`) every drop whose x
-falls in the margins, never touching the drop's state; the GTE state is restored afterwards.
+## Weather particles
+
+Rain `0x8008F440` draws a falling drop only when it projects inside x (0, 320), y (0, 240); a native pass drawing the
+margin drops from a snapshot of the pass's inputs was tried and removed: on the manor shot it drew one streak, and
+of the 35 save points only 13 and 14 have particles (`0x800F1DC0` = 128), which are the other system
+(`func_8008F9A4` seeds the same `0x800F1DD4` array as square flakes) and stop at the 4:3 edge, the right margin
+empty (`scratch/caps/after/rain_a/w13.png`). Owning that flake pass is the next step here.
 
 ## What remains
 
-- Not widened: the tiled 2D backdrop `func_8009147C`, the scanline effect `func_800BB874`, particles other than
-  rain, and the HUD (fixed layout by G003).
+- Not widened: the tiled 2D backdrop `func_8009147C`, the scanline effect `func_800BB874`, weather particles (rain and
+  the flake system above), other particles, and the HUD (fixed layout by G003).
 - These culls are screen-space draw decisions; none was found to feed gameplay.

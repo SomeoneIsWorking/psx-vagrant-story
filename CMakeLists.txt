@@ -42,7 +42,6 @@ add_library(vagrant_game STATIC
   game/images/title_transfer.cpp
   game/input/pad_buffers.cpp
   game/render/battle_cull.cpp
-  game/render/battle_rain.cpp
   game/render/battle_cards.cpp
     game/render/battle_sky.cpp
   game/render/battle_projection.cpp

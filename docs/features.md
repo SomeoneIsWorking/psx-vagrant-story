@@ -43,7 +43,6 @@ Title hops only. Each row is where Vagrant Story joins a psxport feature hop (`p
 | 1 | psxport F-WIDE.1 | `game/runtime/runtime.cpp:Runtime::guestWidescreenProjection` — canvas only; `0x8005E248` is gameplay state; `AspectPolicy` holds 4:3 outside BATTLE |
 | 2 | psxport F-WIDE.2 | `game/render/battle_cull.cpp:installBattleCull` — BATTLE's room quad reject `0x80098014` widened by the margin |
 | 3 | psxport F-WIDE.2 | `game/render/battle_sky.cpp:installBattleSky` — the sky dome `0x8009820C` and the flat backdrop in `0x8008EC48` over the margins |
-| 4 | psxport F-WIDE.2 | `game/render/battle_rain.cpp:installBattleRain` — the rain pass `0x8008F440` plus its margin drops |
 
 ## VS-SAVE (title only)
 

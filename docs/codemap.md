@@ -59,7 +59,6 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
 | battle cull | `game/render/battle_cull.*` | BATTLE's room quad reject `0x80098014`, widened by the canvas margin |
 | battle cards | `game/render/battle_cards.*` | Reads BATTLE's GIM cards (`gims` `0x800EB9BC`): an opaque card on screen holds the aspect at 4:3 |
 | battle sky | `game/render/battle_sky.*` | BATTLE's sky dome `0x8009820C` (native, triangle reject widened) and the flat backdrop fill in `0x8008EC48`, spanning the canvas margins |
-| battle rain | `game/render/battle_rain.*` | Wraps BATTLE's rain pass `0x8008F440`: the drops the retail test leaves out in the margins, drawn from the pass's inputs |
 | `TitleExecPhase` | `game/title/title_exec_phase.*` | TITLE `vs_title_exec` after the save check, as guest code; reports the option it returned |
 | save phases | `game/save/title_save_check.*`, `title_memcard_init.*` | `_saveFileExists` and `_initMemcard` with finite reads in place of the CD queue |
 | tools | `tools/` | Launcher, disc resolution and provisioning |
@@ -81,7 +80,7 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
 | libcd | `StockLibcd` (`CdSync` stock; `CD_cw` wrapped by `cd::handleCdCommand`); reads are synchronous |
 | libds | `LibDsField` per field; `DsControlB` native |
 | memory card | `TitleSaveCheck` → `TitleMemcardInit`; psxport libcard HLE delivers the card events |
-| widescreen | `Runtime::guestWidescreenProjection` widens the record canvas, `AspectPolicy` holds 4:3 unless BATTLE is the published overlay (`_loadTitlePrg` `0x80041F34` republishes TITLE); `0x8005E248` is never written; `battle_cull`, `battle_sky` and `battle_rain` draw into the margins |
+| widescreen | `Runtime::guestWidescreenProjection` widens the record canvas, `AspectPolicy` holds 4:3 unless BATTLE is the published overlay (`_loadTitlePrg` `0x80041F34` republishes TITLE); `0x8005E248` is never written; `battle_cull`, `battle_sky` draws into the margins |
 | warp | `DebugMenu` (`game/debug/debug_menu.*`, psxport `TitleDebugMenu`) → `FrameDriver::armWarp` → `LocationWarp::apply` at a BATTLE VSync field |
 | run report | `Runtime::reportRun` |
 

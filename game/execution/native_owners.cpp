@@ -12,7 +12,6 @@
 #include "images/title_transfer.h"
 #include "render/battle_cull.h"
 #include "render/battle_projection.h"
-#include "render/battle_rain.h"
 #include "render/battle_sky.h"
 #include "runtime/session.h"
 
@@ -108,10 +107,6 @@ void loadBattleProgramsOverride(Core *core) {
     }
     if (!battle_sky::installBattleSky(*core)) {
       lucent::error("vagrant-owners", "BATTLE sky dome and backdrop were not installed");
-      std::abort();
-    }
-    if (!battle_rain::installBattleRain(*core)) {
-      lucent::error("vagrant-owners", "BATTLE rain was not installed");
       std::abort();
     }
     if (!DrawReplay::install(*core)) {
