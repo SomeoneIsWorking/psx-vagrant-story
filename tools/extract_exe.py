@@ -66,7 +66,7 @@ def main():
         return 0
     if got == want:
         print(f"[exe] MATCH rood-reverse's target sha1 {want} — the decomp's symbol addresses are "
-              "OUR addresses, with no translation (docs/references.md)")
+              "OUR addresses, with no translation (external/rood-reverse/docs/references.md)")
         return 0
     print(f"[exe] MISMATCH: this disc yields {got}, rood-reverse targets {want}. A different "
           "region/revision. Its addresses do NOT necessarily apply — treat every borrowed address "

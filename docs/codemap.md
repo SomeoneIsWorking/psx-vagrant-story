@@ -21,7 +21,7 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
   from `registerOverrides`, which runs before any image exists.
 - Per-Core title state lives on `vagrant::Session`, reached through `session(core)`; the runtime holds only what
   is the same for every Core (stock library bindings, pad layout, widescreen policy).
-- A measured address lives at a name in its owner's `*_facts.h` with its provenance.
+- A measured address goes into the decomp's symbol map first, then at a name in its owner's `*_facts.h` until plan 0001 generates them.
 - psxport (`external/psxport`, a link to the live checkout) owns the executor, override keys, the stock
   VSync/libcd/libgte/DMA/pad classes and presentation. This repository supplies addresses and title behaviour.
 
@@ -88,7 +88,7 @@ Frame loop: cadence owned. Each step commits the fields of the guest's last VSyn
 
 | Responsibility | Owner |
 |---|---|
-| A measured address | the owner's `*_facts.h`, at a name, and the chain in `docs/re-frontier.md` |
+| A measured address | the decomp first (`external/rood-reverse/config/<image>/symbol_addrs_findings.txt`, the chain in its `docs/re-frontier.md`), then the owner's `*_facts.h` until plan 0001 generates them |
 | Calling or re-entering guest code | `game/execution/dynarec_dispatch.*` only |
 | A new native resident leaf | `game/execution/native_owners.cpp` |
 | A display field, a presentation fence or a debug route | `vagrant::FrameDriver`, and only there |

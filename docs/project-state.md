@@ -1,7 +1,9 @@
 # Vagrant Story project state
 
 Epic intent is in `docs/project-goals.md`, atomic work in `docs/issues/`, placement in
-`docs/codemap.md`, ordered binary evidence in `docs/re-frontier.md`.
+`docs/codemap.md`. The decomp is `external/rood-reverse`, our fork of the CC0 `ser-pounce/rood-reverse`, split 2026-11-17:
+ordered binary evidence in its `docs/re-frontier.md`, the names the port found in its `symbol_addrs_findings.txt`
+files; generated address constants are plan 0001.
 
 | id | capability | state | one-line evidence or gap |
 |---|---|---|---|

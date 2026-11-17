@@ -33,7 +33,7 @@ overlays, saves and progression are unverified; save point 1 faults (`docs/issue
 Title-owned work: authenticated resident and `.PRG` provisioning, finite resident/TITLE phases, CD and
 memory-card ownership, pad delivery, native heap behaviour, the BATTLE culls that admit 16:9 margins, and the
 measured retail facts each rests on. See `docs/project-state.md` for the capability inventory, `docs/issues/`
-for open defects, and `docs/re-frontier.md` for the ordered binary evidence chain.
+for open defects, and `external/rood-reverse/docs/re-frontier.md` (our decomp fork) for the ordered binary evidence chain.
 
 ## Intended product
 

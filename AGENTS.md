@@ -2,9 +2,10 @@
 
 Ports USA `SLUS_010.40` as a title-specific native/interpreter consumer of `external/psxport`.
 Execution policy: the `dynarec-port`, `dynarec-runtime` and `dynarec-overrides` skills. Framework
-facts: [`external/psxport/AGENTS.md`](external/psxport/AGENTS.md). The CC0
-`external/rood-reverse` decompilation is a source aid, not an authority over the authenticated game
-bytes.
+facts: [`external/psxport/AGENTS.md`](external/psxport/AGENTS.md). The decomp is `external/rood-reverse`, our
+fork of the CC0 `ser-pounce/rood-reverse` (`decomp-split` skill): RE notes, the names the port found
+(`config/<image>/symbol_addrs_findings.txt`) and conflicts (`docs/our-names.md`) live there, and a new guest
+address goes there before the port uses it. It is a source aid, not an authority over the authenticated game bytes.
 
 ## Execution and ownership
 
