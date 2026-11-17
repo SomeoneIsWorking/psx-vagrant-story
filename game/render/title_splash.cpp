@@ -10,6 +10,15 @@
 
 namespace vagrant {
 
+namespace {
+
+// The developer logo's own skip: any button jumps to its fade-out.
+bool skipRequested(Core &core) {
+  return (core.mem_r32(title_splash::kButtonsState) & 0xFFFFu) != 0u;
+}
+
+} // namespace
+
 TitleSplashPhase::TitleSplashPhase() : TitleSplashPhase(productionResidentCallServices()) {
 }
 
@@ -74,6 +83,8 @@ void TitleSplashPhase::beginPublisherField(Core &core) {
     fade = (31u - fieldIndex_) * 4u;
   } else if (fieldIndex_ > 331u) {
     fade = (fieldIndex_ - 331u) * 4u;
+  } else if (skipRequested(core)) {
+    fieldIndex_ = 331u;
   }
   services_.call4(core, title_splash::kDrawSprite, 0x00580020u, 0x10140000u, 0x00300100u, (fade << 16u) | 5u);
   setDisplayEnvironments(core, fieldIndex_);
@@ -86,7 +97,7 @@ void TitleSplashPhase::beginDeveloperField(Core &core) {
     fade = (31u - fieldIndex_) * 4u;
   } else if (fieldIndex_ > 331u) {
     fade = (fieldIndex_ - 331u) * 4u;
-  } else if ((core.mem_r32(title_splash::kButtonsState) & 0xFFFFu) != 0u) {
+  } else if (skipRequested(core)) {
     fieldIndex_ = 331u;
   }
   services_.call4(core, title_splash::kDrawSprite, 0x00680060u, 0x3F40F000u, 0x000D0080u, fade << 16u);
@@ -120,9 +131,8 @@ void TitleSplashPhase::advanceAfterField(Core &core) {
 
   const std::uint32_t disp = core.r[29] + 0x18u;
   const std::uint32_t draw = core.r[29] + 0x30u;
-  if (state_ == TitleSplashState::DeveloperFieldWait) {
-    services_.call0(core, title_splash::kProcessPadState);
-  }
+  // Retail reads the pad only under the developer logo; the publisher logo takes the same skip.
+  services_.call0(core, title_splash::kProcessPadState);
   services_.call1(core, title_splash::kPutDispEnv, disp);
   services_.call1(core, title_splash::kPutDrawEnv, draw);
   if (++fieldIndex_ < 364u) {
