@@ -99,7 +99,13 @@ Rain `0x8008F440` draws a falling drop only when it projects inside x (0, 320), 
 margin drops from a snapshot of the pass's inputs was tried and removed: on the manor shot it drew one streak, and
 of the 35 save points only 13 and 14 have particles (`0x800F1DC0` = 128), which are the other system
 (`func_8008F9A4` seeds the same `0x800F1DD4` array as square flakes) and stop at the 4:3 edge, the right margin
-empty (`scratch/caps/after/rain_a/w13.png`). Owning that flake pass is the next step here.
+empty (`scratch/caps/after/rain_a/w13.png`).
+
+The flake pass is `func_8008FDC4`, not a drawing of state it already keeps: a flake it draws inside x (0, 320) drifts
+on the next tick and calls libc `rand()` (shared with BATTLE's combat code, `74088.c`), while one it leaves undrawn
+falls 32 times faster and respawns through `func_80090A1C`, which also calls `rand()`. Its visibility test drives the
+flakes' motion and the RNG, so the game's own state holds no faithful margin flake, and widening the test would
+change gameplay. Faithful margin flakes need the game itself to simulate them; the margins stay without flakes.
 
 ## What remains
 
