@@ -27,4 +27,7 @@ struct HeapHeader {
 // Seeds heapA with the arena as one free block and leaves heapB an empty chain.
 void initHeap(Core *core);
 
+// Bytes on heapA's free chain, the space `vs_main_allocHeap`/`vs_main_allocHeapR` take from.
+std::uint32_t freeBytes(Core &core);
+
 } // namespace vagrant::heap

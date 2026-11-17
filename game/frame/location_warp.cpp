@@ -1,5 +1,6 @@
 #include "frame/location_warp.h"
 
+#include "boot/game_heap.h"
 #include "core.h"
 
 #include <lucent/log.h>
@@ -27,7 +28,8 @@ std::string LocationWarp::arm(std::size_t index) {
 }
 
 std::optional<std::size_t> LocationWarp::apply(Core &core, bool battleAtField) {
-  if (!armed_ || !battleAtField || core.mem_r32(kScreenTransitionStep) != 0u) {
+  if (!armed_ || !battleAtField || core.mem_r32(kScreenTransitionStep) != 0u ||
+      core.mem_r32(kBattleLoopState) != kFreeRoam) {
     return std::nullopt;
   }
   const std::size_t index = *armed_;
@@ -40,13 +42,14 @@ std::optional<std::size_t> LocationWarp::apply(Core &core, bool battleAtField) {
   call_(core, kLocationTransition, to.location, to.x, to.z, kTeleportEffect);
   core.r[29] += kCallFrameBytes;
   lucent::info("vagrant-warp",
-               "save point {}: location {} (zone {} map {}) at ({}, {}) requested",
+               "save point {}: location {} (zone {} map {}) at ({}, {}) requested, {} heap bytes free",
                index,
                to.location,
                zone,
                map,
                to.x,
-               to.z);
+               to.z,
+               heap::freeBytes(core));
   return index;
 }
 

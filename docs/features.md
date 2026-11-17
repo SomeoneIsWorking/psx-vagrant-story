@@ -56,4 +56,4 @@ Title hops only. Each row is where Vagrant Story joins a psxport feature hop (`p
 | hop | joins | owner |
 |---|---|---|
 | 1 | psxport F-DEBUG.1 | `game/debug/debug_menu.cpp:vagrant::DebugMenu` — `warp save point <0..34>` (catalogue) |
-| 2 | psxport F-DEBUG.2 | `game/frame/location_warp.cpp:LocationWarp::apply` — at a BATTLE VSync field with no transition in flight, calls `func_8007C694(location, x, z, 0, 8)` as the Teleportation spell does |
+| 2 | psxport F-DEBUG.2 | `game/frame/location_warp.cpp:LocationWarp::apply` — at a BATTLE VSync field in free roam (`battleLoopState` 1) with no transition in flight, calls `func_8007C694(location, x, z, 0, 8)` as the Teleportation spell does |

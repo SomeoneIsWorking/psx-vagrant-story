@@ -9,8 +9,8 @@ class Core;
 
 namespace vagrant {
 
-// A save-point arrival of the warp catalogue: the Teleportation spell's own route. BATTLE's func_800735F8 calls the location
-// transition func_8007C694(location, x, z, effect 0, speed 8), which starts the screen transition and the
+// A save-point arrival of the warp catalogue: the Teleportation spell's own route. BATTLE's func_800735F8 calls the
+// location transition func_8007C694(location, x, z, effect 0, speed 8), which starts the screen transition and the
 // ZND/MPD load; the warp makes that call at a field boundary while BATTLE is idle between transitions.
 class LocationWarp {
 public:
@@ -28,6 +28,10 @@ public:
   static constexpr std::uint32_t kScreenTransitionStep = 0x800F1A48u;
   // Resident `vs_main_locationZoneMapIds`: a zone byte and a map byte per location.
   static constexpr std::uint32_t kLocationZoneMapIds = 0x8004F0CCu;
+  // BATTLE `battleLoopState` (D_800F196C): the menu, and so Teleportation, opens only in free roam (1); an event or
+  // transition owns the field otherwise and its loads would be abandoned.
+  static constexpr std::uint32_t kBattleLoopState = 0x800F196Cu;
+  static constexpr std::uint32_t kFreeRoam = 1u;
   static constexpr std::uint32_t kTeleportEffect = 0u;
   static constexpr std::uint32_t kTeleportSpeed = 8u;
 
@@ -47,8 +51,8 @@ public:
   bool armed() const {
     return armed_.has_value();
   }
-  // Makes the armed transition when BATTLE is resident, idle and stopped at its own VSync; returns the
-  // save point it took.
+  // Makes the armed transition when BATTLE is resident, in free roam and stopped at its own VSync; returns the
+  // save point it took. An armed warp waits through events and transitions.
   std::optional<std::size_t> apply(Core &core, bool battleAtField);
 
 private:

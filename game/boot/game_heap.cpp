@@ -2,7 +2,10 @@
 
 #include "core.h"
 
+#include <lucent/log.h>
+
 #include <cstddef>
+#include <cstdlib>
 
 namespace vagrant::heap {
 
@@ -34,6 +37,22 @@ void initHeap(Core *c) {
   constexpr std::uint32_t kKseg0Base = 0x80050000u;
   c->r[2] = kControlB;
   c->r[3] = kKseg0Base;
+}
+
+std::uint32_t freeBytes(Core &core) {
+  // Bounded walk: a free chain longer than the arena's 16-byte blocks is a corrupt list.
+  constexpr std::uint32_t kMaxNodes = kArenaSize / 16u;
+  std::uint32_t total = 0u;
+  std::uint32_t node = core.mem_r32(kControlA + offsetof(HeapHeader, prev));
+  for (std::uint32_t count = 0; node != kControlA; ++count) {
+    if (count == kMaxNodes) {
+      lucent::error("vagrant-heap", "free chain from 0x{:08X} does not return to its head", kControlA);
+      std::abort();
+    }
+    total += core.mem_r32(node + offsetof(HeapHeader, blockSz)) * 16u;
+    node = core.mem_r32(node + offsetof(HeapHeader, prev));
+  }
+  return total;
 }
 
 } // namespace vagrant::heap

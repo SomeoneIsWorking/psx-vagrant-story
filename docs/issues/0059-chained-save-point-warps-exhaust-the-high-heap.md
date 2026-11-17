@@ -1,6 +1,6 @@
 # 0059 — Chained save-point warps exhaust the high heap
 
-Status: open (2026-11-17). Owner: `game/frame/location_warp.cpp:LocationWarp::apply` and the BATTLE zone loaders it
+Status: closed (2026-11-17). Owner: `game/frame/location_warp.cpp:LocationWarp::apply` and the BATTLE zone loaders it
 starts (`func_8007C694`).
 
 ## Observed
@@ -17,6 +17,13 @@ The zone loaders (`loadZnd`, `loadMpd`, the ZUD loader in rood-reverse BATTLE `1
 heap is exhausted by then. Retail reaches a save point's Teleportation only from the menu, after the room's own
 teardown; the warp calls the transition at any idle BATTLE field, so a room's loads may never be freed.
 
-## Next
-Trace the high heap (`vs_main_allocHeapR`/`vs_main_freeHeapR`) across one warp and find which allocation outlives it;
-make the warp wait for the teardown the menu route performs, or refuse while it is pending.
+## Fix
+`LocationWarp::apply` takes an armed warp only in free roam (BATTLE `battleLoopState` `0x800F196C` == 1), the one
+state the menu, and so Teleportation, opens from; through an event or a transition the warp stays armed. Each warp
+logs the free high heap (`heap::freeBytes`).
+
+## Proof
+`start 2` at frame 2, then `warp 3`, `4`, `6`, `2` repeated, 360 frames apart, no pad input
+(`scratch/caps/chain3.sched`): 20 of 20 warps taken, faults=0, and each save point arrives with the same free heap
+every lap (3: 257536, 4: 344432, 6: 197008, 2: 228880 bytes). Workshop save points (5, 18) open their first-visit
+CHECK box on arrival, which waits for a button, so a chain through one holds there by design.
