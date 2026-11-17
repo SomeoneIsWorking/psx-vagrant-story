@@ -52,6 +52,10 @@ inline constexpr std::uint32_t kExecTitleStackSlot = 0x8005DFD0u;
 inline constexpr std::uint32_t kExecTitleTail = 0x80042BE0u;
 inline constexpr std::uint32_t kExecTitleReturn = 0x80042C64u;
 
+// `_loadTitlePrg` 0x80041F34 (the second jal of `vs_main_execTitle`) reads TITLE.PRG into overlay slot 0 through the CD
+// queue whenever the game returns to the title.
+inline constexpr std::uint32_t kLoadTitlePrg = 0x80041F34u;
+
 // `_loadBattlePrg` 0x80041E4C reads BATTLE.PRG into overlay slot 0 and INITBTL.PRG into slot 1 through the CD queue.
 inline constexpr std::uint32_t kLoadBattlePrg = 0x80041E4Cu;
 inline constexpr std::uint32_t kBattlePrgLba = 0x0000044Cu;

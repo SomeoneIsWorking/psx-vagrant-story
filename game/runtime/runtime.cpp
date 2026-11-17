@@ -111,6 +111,13 @@ void Runtime::deliverPad(Core &core, const psx::input::PadDelivery &delivery) {
   pad_.deliver(core, delivery);
 }
 
+psx::present::PresentationAspect AspectPolicy::presentationAspect(const Core &core) const {
+  if (!session(core).overlayImages.resident(OverlayKind::Battle).has_value()) {
+    return psx::present::PresentationAspect::Standard4x3;
+  }
+  return psx::present::GuestWidescreenProjection::presentationAspect(core);
+}
+
 const psx::present::GuestWidescreenProjection *Runtime::guestWidescreenProjection() const {
   return &widescreen_;
 }

@@ -5,7 +5,7 @@ status: partial
 symptom: S010 (true widescreen) needs the room geometry drawn into the canvas margins without moving the projection word
 tags: S010,S015,widescreen,projection,decomp
 created: 2026-09-27
-updated: 2026-10-10
+updated: 2026-11-17
 ---
 
 ## What was built
@@ -64,14 +64,33 @@ branched on against 272 and scales the GTE fog. A widening that raised the globa
 gameplay decision, so this owner widens the *canvas* and never `H`, and the threshold is a shipped
 constant rather than a comment.
 
+## Fixed-layout screens stay 4:3
+
+`vagrant::AspectPolicy` (`game/runtime/runtime.cpp`) holds 4:3 while BATTLE is not the published overlay: the
+splashes, the intro movie, the title menu and the NOW LOADING card are 320-wide pictures with other VRAM beside them,
+and at 16:9 the movie showed that VRAM (title-screen tiles, a ghost of the logo) in its right margin
+(`scratch/caps/before/route/f1000.png`, `f9000.png`). The attract demo runs BATTLE and the guest then reloads TITLE
+through `_loadTitlePrg` `0x80041F34`, which nothing published, so BATTLE stayed the resident overlay on the second
+movie; `_loadTitlePrg` is now owned and publishes TITLE (`readAndLoadTitle`), retiring BATTLE's generation. After:
+the movie is pillarboxed at frames 800, 1000 and 9000 (`scratch/caps/after/splash2`, `after/route3/f9000.png`).
+
+## Sky dome, flat backdrop and rain
+
+The room backdrop `0x8008EC48` (rood-reverse upstream `146C.c`) draws one of a tiled picture, a flat fill (all five
+room sky colours equal) or the sky dome `0x8009820C` (upstream `2EA3C.s`): 34 vertices through `rtv0tr`, then 64
+gouraud triangles dropped when all three corners lie past one edge of x [0,320) or y [0,224).
+`game/render/battle_sky.cpp` replaces the dome natively with the same transform, writes and packet chain, the reject
+box from `battle_cull::widenedBox`; the flat fill's POLY_FT4 is moved to the widened box after the original runs. At
+4:3 both are the retail bytes. On the manor's establishing shot the dome now fills both margins
+(`after/route3/f12860.png`), where before only the triangles that straddled the 4:3 edge showed.
+
+Rain `0x8008F440`: `game/render/battle_rain.cpp` snapshots each falling drop before the pass, runs it, then repeats
+its move and projection from that snapshot and draws as a LINE_G2 plus its tpage (`insertTPage`) every drop whose x
+falls in the margins, never touching the drop's state; the GTE state is restored afterwards.
+
 ## What remains
 
-- Not widened, so margins hold stale or black columns for them: the sky-dome inline reject (`0x8009820C` region),
-  the literal-320 gradient in `0x8008EC48`, effect and UI culls (rain `0x8008F440`, particles, HUD) and the
-  `func_800BB874` scanline effect, which spans 320 px.
-- These culls are screen-space draw decisions; none was found to feed gameplay, but only the room quad reject is
-  proven so here.
-- Rain (`0x8008F440`, 2026-10-29, manor courtyard after the prologue): each drop is projected through
-  `0x80041814` and drawn only when its screen x is in (0, 320) (`slti 0x140` at `0x8008F5B4`), so no drop falls in
-  the margins. The draw path also clears the drop's byte `+1` (`0x8008F6CC`), which gates its splash, so widening
-  the test would change which drops splash; the proper fix draws margin drops without touching that byte.
+- The prologue staff credits (f15600 on `after/route4`) are a 320-wide card with other VRAM beside it at 16:9.
+- Not widened: the tiled 2D backdrop `func_8009147C`, the scanline effect `func_800BB874`, particles other than
+  rain, and the HUD (fixed layout by G003).
+- These culls are screen-space draw decisions; none was found to feed gameplay.

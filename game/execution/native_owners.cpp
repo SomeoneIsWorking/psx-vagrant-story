@@ -3,13 +3,17 @@
 #include "boot/game_heap.h"
 #include "boot/resident_facts.h"
 #include "cd/cd_facts.h"
+#include "cd/disk_loads.h"
 #include "cd/ds_control.h"
 #include "core.h"
 #include "execution/dynarec_dispatch.h"
 #include "frame/draw_replay.h"
 #include "images/battle_transfer.h"
+#include "images/title_transfer.h"
 #include "render/battle_cull.h"
 #include "render/battle_projection.h"
+#include "render/battle_rain.h"
+#include "render/battle_sky.h"
 #include "runtime/session.h"
 
 #include <cstdlib>
@@ -72,6 +76,26 @@ void dsReadyOverride(Core *core) {
 
 namespace {
 
+// A return to the title (after the attract demo, a reset or the ending) reloads TITLE over BATTLE; it is published so
+// the BATTLE generation and its owners retire.
+void loadTitleProgramOverride(Core *core) {
+  const OverlayLoadResult loaded = readAndLoadTitle(*core, session(*core).overlayImages, cd::readDiscSector);
+  if (loaded) {
+    lucent::info("vagrant-owners", "TITLE.PRG reloaded as a published image");
+    return;
+  }
+  lucent::error("vagrant-owners", "TITLE.PRG reload refused: {}", loaded.detail);
+  std::abort();
+}
+
+void processCdQueueOverride(Core *core) {
+  cd::processCdQueue(*core);
+}
+
+void diskLoadFileOverride(Core *core) {
+  cd::loadFile(*core);
+}
+
 // `_loadBattlePrg` waits on the CD queue for both overlays; the finite read publishes them whole instead, and the
 // trailing `vs_overlay_wait` is a 4096-instruction nop sled.
 void loadBattleProgramsOverride(Core *core) {
@@ -80,6 +104,14 @@ void loadBattleProgramsOverride(Core *core) {
     lucent::info("vagrant-owners", "BATTLE.PRG and INITBTL.PRG loaded as published images");
     if (!battle_cull::installBattleCull(*core)) {
       lucent::error("vagrant-owners", "BATTLE room quad reject was not installed");
+      std::abort();
+    }
+    if (!battle_sky::installBattleSky(*core)) {
+      lucent::error("vagrant-owners", "BATTLE sky dome and backdrop were not installed");
+      std::abort();
+    }
+    if (!battle_rain::installBattleRain(*core)) {
+      lucent::error("vagrant-owners", "BATTLE rain was not installed");
       std::abort();
     }
     if (!DrawReplay::install(*core)) {
@@ -106,6 +138,9 @@ NativeOwnerRegistration installResidentNativeOwners(Core &core, psx::cpu::ImageI
       {cd::kDsControlB, "Vagrant libds DsControlB", dsControlOverride},
       {cd::kDsReadyCallback, "Vagrant libds ds_cbready", dsReadyOverride},
       {resident::kLoadBattlePrg, "Vagrant _loadBattlePrg", loadBattleProgramsOverride},
+      {resident::kLoadTitlePrg, "Vagrant _loadTitlePrg", loadTitleProgramOverride},
+      {cd::disk::kDiskLoadFile, "Vagrant vs_main_diskLoadFile", diskLoadFileOverride},
+      {cd::disk::kProcessCdQueue, "Vagrant _processCdQueue", processCdQueueOverride},
   };
   for (const Binding &binding : bindings) {
     ++registration.attempts;

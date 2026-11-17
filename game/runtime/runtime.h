@@ -16,6 +16,13 @@ class Game;
 
 namespace vagrant {
 
+// TITLE's splashes, movie and menu and the loading card are 320-wide pictures with VRAM beside them; only BATTLE draws
+// into the canvas margins.
+class AspectPolicy final : public psx::present::GuestWidescreenProjection {
+public:
+  psx::present::PresentationAspect presentationAspect(const Core &core) const override;
+};
+
 // Vagrant Story (SLUS_010.40) on Record: the resident boot phases, the stock libetc/libcd/libapi bindings at
 // this executable's addresses, the PadInitDirect buffers and the debug menu.
 class Runtime final : public psx::game::GameRuntime {
@@ -60,7 +67,7 @@ private:
   psx::cd::StockLibcd libcd_;
   psx::hle::StockDmaCallbacks dmaCallbacks_;
   PadBuffers pad_;
-  psx::present::GuestWidescreenProjection widescreen_;
+  AspectPolicy widescreen_;
   DebugMenu debugMenu_;
 };
 

@@ -26,6 +26,7 @@ add_library(vagrant_game STATIC
   game/cd/cd_command.cpp
   game/cd/ds_control.cpp
   game/cd/libds_field.cpp
+  game/cd/disk_loads.cpp
   game/cd/native_file.cpp
   game/execution/dynarec_dispatch.cpp
   game/execution/guest_phase.cpp
@@ -41,6 +42,8 @@ add_library(vagrant_game STATIC
   game/images/title_transfer.cpp
   game/input/pad_buffers.cpp
   game/render/battle_cull.cpp
+  game/render/battle_rain.cpp
+  game/render/battle_sky.cpp
   game/render/battle_projection.cpp
   game/render/title_splash.cpp
   game/runtime/runtime.cpp

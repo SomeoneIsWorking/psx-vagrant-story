@@ -33,14 +33,17 @@ Title hops only. Each row is where Vagrant Story joins a psxport feature hop (`p
 |---|---|---|
 | 1 | psxport F-CD.1 | `game/cd/cd_command.cpp:handleCdCommand` — stock `CD_cw`, then the libds sync completion it owes |
 | 2 | psxport F-CD.1 | `game/cd/ds_control.cpp:handleDsControl` — the blocking `DsControlB` body |
-| 3 | psxport F-CD.3 | `game/images/overlay_images.cpp:OverlayImages` — TITLE/BATTLE/INITBTL published as image generations |
+| 3 | psxport F-CD.1 | `game/cd/disk_loads.cpp:processCdQueue`, `loadFile` — the CD queue and the synchronous disk load finished in one call |
+| 4 | psxport F-CD.3 | `game/images/overlay_images.cpp:OverlayImages` — TITLE/BATTLE/INITBTL published as image generations |
 
 ## F-WIDE
 
 | hop | joins | owner |
 |---|---|---|
-| 1 | psxport F-WIDE.1 | `game/runtime/runtime.cpp:Runtime::guestWidescreenProjection` — canvas only; `0x8005E248` is gameplay state |
+| 1 | psxport F-WIDE.1 | `game/runtime/runtime.cpp:Runtime::guestWidescreenProjection` — canvas only; `0x8005E248` is gameplay state; `AspectPolicy` holds 4:3 outside BATTLE |
 | 2 | psxport F-WIDE.2 | `game/render/battle_cull.cpp:installBattleCull` — BATTLE's room quad reject `0x80098014` widened by the margin |
+| 3 | psxport F-WIDE.2 | `game/render/battle_sky.cpp:installBattleSky` — the sky dome `0x8009820C` and the flat backdrop in `0x8008EC48` over the margins |
+| 4 | psxport F-WIDE.2 | `game/render/battle_rain.cpp:installBattleRain` — the rain pass `0x8008F440` plus its margin drops |
 
 ## VS-SAVE (title only)
 

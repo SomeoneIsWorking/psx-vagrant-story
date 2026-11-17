@@ -53,3 +53,35 @@ constexpr bool ownedControl(std::uint32_t command) {
 }
 
 } // namespace vagrant::cd
+
+namespace vagrant::cd::disk {
+
+// The resident CD queue (rood-reverse `_processCdQueue`, `_cdQueue`, `_cdQueueCount`, `vs_main_disk`), offsets read
+// from `_processCdQueue`'s own loads and stores.
+inline constexpr std::uint32_t kProcessCdQueue = 0x80044C74u;
+inline constexpr std::uint32_t kDiskStateMachine = 0x800443CCu;
+// `vs_main_diskLoadFile(lba, bytes, dest)` and the `_diskInitRead` it opens with (fields, cdLoc, state 5).
+inline constexpr std::uint32_t kDiskLoadFile = 0x8004493Cu;
+inline constexpr std::uint32_t kDiskInitRead = 0x80044340u;
+inline constexpr std::uint32_t kSlots = 0x800501E0u;
+inline constexpr std::uint32_t kSlotCount = 32u;
+inline constexpr std::uint32_t kSlotStride = 0x14u;
+inline constexpr std::uint32_t kSlotState = 0x0u;    // s16
+inline constexpr std::uint32_t kSlotPriority = 0x2u; // s16
+inline constexpr std::uint32_t kSlotLba = 0x4u;
+inline constexpr std::uint32_t kSlotSize = 0x8u;
+inline constexpr std::uint32_t kSlotDestination = 0x10u;
+inline constexpr std::uint32_t kCounts = 0x80050460u; // u16 processing, u16 queued
+inline constexpr std::uint32_t kDisk = 0x80055D10u;
+inline constexpr std::uint32_t kDiskBufferMode = 0x2Cu;
+inline constexpr std::uint32_t kDiskSectorsDelivered = 0x04u;
+inline constexpr std::uint32_t kDiskSectorCount = 0x08u;
+inline constexpr std::uint32_t kDiskSectorIndex = 0x30u;
+inline constexpr std::uint32_t kDiskFramesSinceLastRead = 0x44u;
+
+inline constexpr std::uint16_t kStateReading = 2u;
+inline constexpr std::uint16_t kStateEnqueued = 3u;
+inline constexpr std::uint16_t kStateLoaded = 4u;
+inline constexpr std::uint8_t kDiskIdle = 0u;
+
+} // namespace vagrant::cd::disk

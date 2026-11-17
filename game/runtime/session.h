@@ -40,5 +40,6 @@ public:
 
 // The session of the Game `core` belongs to; aborts when it has none.
 Session &session(Core &core);
+const Session &session(const Core &core);
 
 } // namespace vagrant
