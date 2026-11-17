@@ -10,6 +10,7 @@
 #include "render/title_splash.h"
 #include "save/title_memcard_init.h"
 #include "save/title_save_check.h"
+#include "title/save_point_start.h"
 #include "title/title_exec_phase.h"
 
 #include <array>
@@ -33,6 +34,7 @@ public:
   TitleSplashPhase titleSplash{};
   TitleMemcardInit titleMemcardInit{};
   TitleSaveCheck titleSaveCheck{};
+  SavePointStart savePointStart{};
   TitleExecPhase titleExec{};
   ExecTitleTail execTitleTail{};
   DrawReplay drawReplay;

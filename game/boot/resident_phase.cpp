@@ -308,6 +308,12 @@ void ResidentPhase::advanceAfterField(Core &core) {
     if (!saveCheck.complete()) {
       return;
     }
+    if (session(core).savePointStart.armed()) {
+      const std::uint32_t option = session(core).savePointStart.take(core, services_.call1);
+      state_ = ResidentPhaseState::ExecTitleTailRunning;
+      session(core).execTitleTail.begin(core, option);
+      return;
+    }
     state_ = ResidentPhaseState::TitleExecRunning;
     lucent::info("vagrant-resident", "TITLE save-file check completed; vs_title_exec continues as guest code");
     session(core).titleExec.begin(core, saveCheck.saveFileExists() ? 1u : 0u);

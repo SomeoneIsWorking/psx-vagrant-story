@@ -50,6 +50,7 @@ add_library(vagrant_game STATIC
   game/runtime/session.cpp
   game/save/title_memcard_init.cpp
   game/save/title_save_check.cpp
+  game/title/save_point_start.cpp
   game/title/title_exec_phase.cpp)
 target_include_directories(vagrant_game PUBLIC game)
 target_link_libraries(vagrant_game PUBLIC psxport)

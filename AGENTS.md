@@ -59,9 +59,10 @@ instructions in the executor ledger, a reached native CD override, reached resid
 one scoped `superCall`, image-generation invalidation with an unchanged-generation negative, zero
 guest-VSync violations, and independent CPU/device-state comparison.
 
-To reach a map, start a New Game (BATTLE is resident from the prologue) and send
-`warp save point <0..34>` (`warp ?` lists them) on the control channel; `vagrant::LocationWarp` takes
-it through BATTLE's own location transition at a field boundary. Save points reached from the New
+To reach a map, send `start <0..34>` before the title menu opens (a new game continued at that save
+point, `vagrant::SavePointStart`), then `warp save point <0..34>` (`warp ?` lists them) on the control
+channel; `vagrant::LocationWarp` takes it through BATTLE's own location transition at a field boundary
+once Ashley is in free roam. Save points reached from the New
 Game prologue leave Ashley hidden on arrival (issue 0055); save point 1 faulted at 0x00000001 once and
 has since loaded in two runs (issue 0052).
 
