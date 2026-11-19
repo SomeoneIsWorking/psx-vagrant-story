@@ -1,6 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Vagrant Story Revamped
+X-OpenSU-BoxArt=psx/Vagrant Story (USA)
 GenericName=Role-playing game
 Comment=PC-native port of Vagrant Story
 Icon=dev.someoneisworking.vagrantstory
